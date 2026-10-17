@@ -39,9 +39,11 @@ public class Api {
 
     private final RestClient rest;
     private final ObjectMapper mapper;
+    private final Despertador despertador;
 
-    public Api(@Value("${minimundo.gateway-url}") String gatewayUrl, ObjectMapper mapper) {
+    public Api(@Value("${minimundo.gateway-url}") String gatewayUrl, ObjectMapper mapper, Despertador despertador) {
         this.mapper = mapper;
+        this.despertador = despertador;
         HttpClient http = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(http);
@@ -192,6 +194,9 @@ public class Api {
         } catch (Exception ignorada) {
             // cuerpo vacío o no JSON
         }
+        if (status >= 500) {
+            despertador.despertar();
+        }
         if (mensaje == null) {
             mensaje = switch (status) {
                 case 401 -> "Tu sesión expiró. Inicia sesión de nuevo.";
@@ -205,6 +210,7 @@ public class Api {
     }
 
     private ApiException noDisponible() {
+        despertador.despertar();
         return new ApiException(503, "La plataforma se está iniciando o un servicio no responde. "
                 + "Espera unos segundos y vuelve a intentarlo.", null);
     }
