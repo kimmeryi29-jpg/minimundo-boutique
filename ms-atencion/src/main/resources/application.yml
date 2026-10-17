@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: ms-atencion
+  profiles:
+    default: local
+  data:
+    mongodb:
+      auto-index-creation: true
+  jackson:
+    time-zone: America/Bogota
+
+server:
+  port: ${PORT:8085}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:}
+  http:
+    connect-timeout-segundos: ${HTTP_CONNECT_TIMEOUT:5}
+    read-timeout-segundos: ${HTTP_READ_TIMEOUT:20}
+  servicios:
+    pedidos: ${PEDIDOS_URL:http://localhost:8083}
+    catalogo: ${CATALOGO_URL:http://localhost:8082}
+    logistica: ${LOGISTICA_URL:http://localhost:8084}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/db_atencion}
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:minimundo-secreto-local-solo-para-desarrollo}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+minimundo:
+  servicios:
+    pedidos: ${PEDIDOS_URL}
+    catalogo: ${CATALOGO_URL}
+    logistica: ${LOGISTICA_URL}
