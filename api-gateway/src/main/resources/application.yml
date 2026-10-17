@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    default: local
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 10000
+            response-timeout: 70s
+      httpclient:
+        connect-timeout: 10000
+        response-timeout: 70s
+  codec:
+    max-in-memory-size: 16MB
+
+server:
+  port: ${PORT:8090}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:}
+  cors:
+    origenes: ${CORS_ORIGINS:http://localhost:8080}
+  servicios:
+    usuarios: ${USUARIOS_URL:http://localhost:8081}
+    catalogo: ${CATALOGO_URL:http://localhost:8082}
+    pedidos: ${PEDIDOS_URL:http://localhost:8083}
+    logistica: ${LOGISTICA_URL:http://localhost:8084}
+    atencion: ${ATENCION_URL:http://localhost:8085}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:minimundo-secreto-local-solo-para-desarrollo}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+minimundo:
+  servicios:
+    usuarios: ${USUARIOS_URL}
+    catalogo: ${CATALOGO_URL}
+    pedidos: ${PEDIDOS_URL}
+    logistica: ${LOGISTICA_URL}
+    atencion: ${ATENCION_URL}
