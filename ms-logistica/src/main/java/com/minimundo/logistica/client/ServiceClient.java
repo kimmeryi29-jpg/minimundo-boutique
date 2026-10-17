@@ -59,21 +59,22 @@ public class ServiceClient {
     }
 
     public <T> T post(String uri, Object body, Class<T> tipo, Object... vars) {
-        return ejecutar(() -> rest.post().uri(uri, vars).header("Authorization", "Bearer " + tokens.token())
-                .contentType(MediaType.APPLICATION_JSON).body(body == null ? new Object() : body)
-                .retrieve().body(tipo));
+        return ejecutar(() -> conCuerpo(rest.post().uri(uri, vars), body).retrieve().body(tipo));
     }
 
     public <T> T post(String uri, Object body, ParameterizedTypeReference<T> tipo, Object... vars) {
-        return ejecutar(() -> rest.post().uri(uri, vars).header("Authorization", "Bearer " + tokens.token())
-                .contentType(MediaType.APPLICATION_JSON).body(body == null ? new Object() : body)
-                .retrieve().body(tipo));
+        return ejecutar(() -> conCuerpo(rest.post().uri(uri, vars), body).retrieve().body(tipo));
     }
 
     public <T> T patch(String uri, Object body, Class<T> tipo, Object... vars) {
-        return ejecutar(() -> rest.patch().uri(uri, vars).header("Authorization", "Bearer " + tokens.token())
-                .contentType(MediaType.APPLICATION_JSON).body(body == null ? new Object() : body)
-                .retrieve().body(tipo));
+        return ejecutar(() -> conCuerpo(rest.patch().uri(uri, vars), body).retrieve().body(tipo));
+    }
+
+    /** Agrega el token de servicio y, solo si existe, el cuerpo JSON (una petición sin cuerpo no envía "{}"). */
+    private RestClient.RequestBodySpec conCuerpo(RestClient.RequestBodySpec spec, Object body) {
+        RestClient.RequestBodySpec s = spec.header("Authorization", "Bearer " + tokens.token())
+                .accept(MediaType.APPLICATION_JSON);
+        return body == null ? s : s.contentType(MediaType.APPLICATION_JSON).body(body);
     }
 
     private <T> T ejecutar(Supplier<T> llamada) {

@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: web-frontend
+  profiles:
+    default: local
+  thymeleaf:
+    cache: true
+  servlet:
+    multipart:
+      max-file-size: 3MB
+      max-request-size: 20MB
+  mvc:
+    format:
+      date: iso
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        http-only: true
+        same-site: lax
+  error:
+    whitelabel:
+      enabled: false
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+minimundo:
+  gateway-url: ${GATEWAY_URL:http://localhost:8090}
+  demo-password: ${DEMO_PASSWORD:Demo12345}
+  mostrar-usuarios-demo: ${SHOW_DEMO_USERS:true}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  thymeleaf:
+    cache: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+minimundo:
+  gateway-url: ${GATEWAY_URL}
