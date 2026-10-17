@@ -1,7 +1,7 @@
 # Blueprint de Render para MiniMundo Boutique (HU-100).
 # Render > New > Blueprint > elige este repositorio. Crea los 7 servicios en el plan gratuito.
-# Antes de aplicar ten listas las 5 cadenas de conexión de MongoDB Atlas (una base por microservicio): Render las
-# pide al crear el Blueprint porque están marcadas con sync: false. Paso a paso en el README.
+# La contraseña de MongoDB Atlas NO va en este archivo: después de crear el Blueprint agrégala una sola vez como
+# MONGODB_PASSWORD en el grupo de variables minimundo-comun (Render > Env Groups). Reemplaza <db_password>.
 #
 # Los servicios gratuitos de Render no reciben tráfico por la red privada, así que se comunican por sus URL públicas
 # https://<nombre>.onrender.com. Si Render le agrega un sufijo a algún nombre (porque ya existe), corrige la URL en el
@@ -54,7 +54,7 @@ services:
       - fromGroup: minimundo-comun
       - fromGroup: minimundo-urls
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://kimmeryi29_db_user:<db_password>@meryi29.njaxolu.mongodb.net/db_usuarios?retryWrites=true&w=majority
       - key: ADMIN_EMAIL
         value: admin@minimundo.co
       - key: ADMIN_PASSWORD
@@ -75,7 +75,7 @@ services:
       - fromGroup: minimundo-comun
       - fromGroup: minimundo-urls
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://kimmeryi29_db_user:<db_password>@meryi29.njaxolu.mongodb.net/db_catalogo?retryWrites=true&w=majority
   # ms-pedidos -> base db_pedidos
   - type: web
     name: minimundo-pedidos
@@ -92,7 +92,7 @@ services:
       - fromGroup: minimundo-comun
       - fromGroup: minimundo-urls
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://kimmeryi29_db_user:<db_password>@meryi29.njaxolu.mongodb.net/db_pedidos?retryWrites=true&w=majority
   # ms-logistica -> base db_logistica
   - type: web
     name: minimundo-logistica
@@ -109,7 +109,7 @@ services:
       - fromGroup: minimundo-comun
       - fromGroup: minimundo-urls
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://kimmeryi29_db_user:<db_password>@meryi29.njaxolu.mongodb.net/db_logistica?retryWrites=true&w=majority
   # ms-atencion -> base db_atencion
   - type: web
     name: minimundo-atencion
@@ -126,7 +126,7 @@ services:
       - fromGroup: minimundo-comun
       - fromGroup: minimundo-urls
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://kimmeryi29_db_user:<db_password>@meryi29.njaxolu.mongodb.net/db_atencion?retryWrites=true&w=majority
   # api-gateway: única entrada a la API
   - type: web
     name: minimundo-gateway

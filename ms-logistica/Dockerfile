@@ -16,4 +16,5 @@ USER minimundo
 ENV SPRING_PROFILES_ACTIVE=prod \
     JAVA_OPTS="-XX:+UseSerialGC -XX:MaxRAMPercentage=65 -XX:TieredStopAtLevel=1 -Xss256k -Djava.security.egd=file:/dev/./urandom"
 EXPOSE 8084
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
+# En Render la contraseña de Atlas va aparte (MONGODB_PASSWORD) y reemplaza <db_password> en MONGODB_URI.
+ENTRYPOINT ["sh", "-c", "if [ -n \"$MONGODB_PASSWORD\" ]; then export MONGODB_URI=$(printf '%s' \"$MONGODB_URI\" | sed \"s|<db_password>|$MONGODB_PASSWORD|\"); fi; exec java $JAVA_OPTS -jar app.jar"]
