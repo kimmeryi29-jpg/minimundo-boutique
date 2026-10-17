@@ -1,0 +1,27 @@
+# Compilación
+target/
+*.class
+*.jar
+!**/src/main/resources/**/*.jar
+
+# IDE (Spring Tools / Eclipse / IntelliJ / VS Code)
+.settings/
+.project
+.classpath
+.factorypath
+.springBeans
+.sts4-cache/
+.idea/
+*.iml
+.vscode/
+bin/
+
+# Variables de entorno y secretos: NUNCA se suben a GitHub
+.env
+*.env
+!.env.example
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log

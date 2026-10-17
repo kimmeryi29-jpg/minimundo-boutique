@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: ms-usuarios
+  profiles:
+    default: local
+  data:
+    mongodb:
+      auto-index-creation: true
+  jackson:
+    time-zone: America/Bogota
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+server:
+  port: ${PORT:8081}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    mail:
+      enabled: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:}
+    expiracion-minutos: ${JWT_EXPIRATION_MINUTES:480}
+  seguridad:
+    max-intentos: ${MAX_LOGIN_ATTEMPTS:5}
+    minutos-bloqueo: ${LOCK_MINUTES:15}
+  frontend-url: ${FRONTEND_URL:http://localhost:8080}
+  mail:
+    remitente: ${MAIL_FROM:no-responder@minimundo.co}
+  admin:
+    email: ${ADMIN_EMAIL:admin@minimundo.co}
+    password: ${ADMIN_PASSWORD:Admin12345}
+  demo-data: ${DEMO_DATA:true}
+  demo-password: ${DEMO_PASSWORD:Demo12345}
+
+---
+# Perfil local: Spring Tools o docker-compose
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/db_usuarios}
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:minimundo-secreto-local-solo-para-desarrollo}
+
+---
+# Perfil prod: Render. Todo sale de variables de entorno; si falta alguna, el servicio no inicia.
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}

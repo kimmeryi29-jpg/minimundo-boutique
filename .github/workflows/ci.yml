@@ -1,0 +1,31 @@
+name: CI · compilar y probar
+
+# HU-104 / Definición de Terminado: cada servicio compila con mvn package y pasan sus pruebas unitarias.
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  servicios:
+    name: ${{ matrix.servicio }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        servicio: [ms-usuarios, ms-catalogo, ms-pedidos, ms-logistica, ms-atencion, api-gateway, web-frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: ${{ matrix.servicio }}/pom.xml
+      - name: Compilar y ejecutar pruebas (mvn verify)
+        working-directory: ${{ matrix.servicio }}
+        run: |
+          if [ ! -f pom.xml ]; then echo "Servicio aún sin pom.xml, se omite"; exit 0; fi
+          mvn -B -ntp verify
