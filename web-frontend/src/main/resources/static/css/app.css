@@ -176,7 +176,7 @@ a { text-underline-offset: 3px; }
 .aviso-amarillo { background: var(--pollito-claro); color: #6B4B00; border-color: #F6DF96; }
 
 /* ---------- Panel del personal ---------- */
-.panel { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+.panel { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; background: linear-gradient(to right, var(--tinta) 250px, transparent 250px); }
 .panel-lateral { background: var(--tinta); color: #DCE6F2; padding: 1.25rem .9rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .panel-lateral .marca { color: #fff; font-size: 1.35rem; }
 .panel-lateral .rol { font-size: .85rem; color: #A9BBD2; margin: .4rem 0 1.25rem .2rem; }
@@ -190,7 +190,7 @@ a { text-underline-offset: 3px; }
 .panel-cabecera h1 { margin: 0; font-size: 1.75rem; }
 .panel-menu-movil { display: none; }
 @media (max-width: 991px) {
-  .panel { grid-template-columns: 1fr; }
+  .panel { grid-template-columns: 1fr; background: none; }
   .panel-lateral { display: none; position: static; height: auto; }
   .panel-lateral.abierto { display: block; }
   .panel-menu-movil { display: flex; align-items: center; justify-content: space-between; background: var(--tinta); color: #fff; padding: .7rem 1rem; }
