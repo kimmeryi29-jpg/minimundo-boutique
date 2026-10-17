@@ -17,15 +17,29 @@ jobs:
       matrix:
         servicio: [ms-usuarios, ms-catalogo, ms-pedidos, ms-logistica, ms-atencion, api-gateway, web-frontend]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - name: Verificar que el servicio existe
+        id: existe
+        run: |
+          if [ -f "${{ matrix.servicio }}/pom.xml" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-java@v5
+        if: steps.existe.outputs.ok == 'true'
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
           cache-dependency-path: ${{ matrix.servicio }}/pom.xml
       - name: Compilar y ejecutar pruebas (mvn verify)
+        if: steps.existe.outputs.ok == 'true'
         working-directory: ${{ matrix.servicio }}
         run: |
-          if [ ! -f pom.xml ]; then echo "Servicio aún sin pom.xml, se omite"; exit 0; fi
-          mvn -B -ntp verify
+          set +e
+          mvn -B -ntp verify > build.log 2>&1
+          code=$?
+          # Resumen visible como anotaciones (pruebas, errores de compilación y fallas).
+          grep -E "Tests run: [0-9]+, Failures" build.log | tail -1 | sed 's/^/::notice title=${{ matrix.servicio }} pruebas::/'
+          grep -E "\[ERROR\] .*\.java:\[[0-9]+" build.log | head -25 | sed 's/^/::error title=compilación::/'
+          grep -E "\[ERROR\] (Tests run|  [A-Za-z]+Test\.|Failures:|Errors:|[a-zA-Z]+Test\.[a-zA-Z0-9_]+)" build.log | head -25 | sed 's/^/::error title=prueba::/'
+          grep -E "^\s+(at com\.minimundo|Caused by|org\.opentest4j|java\.lang\.[A-Za-z]+Exception|Expected|but was|Expecting)" build.log | head -20 | sed 's/^/::warning title=detalle::/'
+          tail -60 build.log
+          exit $code
