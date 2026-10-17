@@ -1,0 +1,53 @@
+name: E2E · flujo completo con Docker Compose
+
+# HU-98: levanta los servicios con docker compose y prueba el flujo de punta a punta con los cinco roles.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - name: Construir y levantar los servicios
+        run: |
+          SERVICIOS="mongo ms-usuarios ms-catalogo ms-pedidos ms-logistica ms-atencion api-gateway"
+          if [ -f web-frontend/Dockerfile ]; then SERVICIOS="$SERVICIOS web-frontend"; fi
+          echo "SERVICIOS=$SERVICIOS" >> "$GITHUB_ENV"
+          docker compose up -d --build $SERVICIOS
+      - name: Esperar a que todos respondan UP en /actuator/health (HU-99)
+        run: |
+          for p in 8081 8082 8083 8084 8085 8090; do
+            for i in $(seq 1 60); do
+              if curl -fs "http://localhost:$p/actuator/health" | grep -q '"UP"'; then echo "$p UP"; break; fi
+              sleep 5
+            done
+          done
+          for p in 8081 8082 8083 8084 8085 8090; do
+            curl -fs "http://localhost:$p/actuator/health" | grep -q '"UP"' || { echo "::error title=salud::El puerto $p no respondió UP"; }
+          done
+      - name: Swagger UI y OpenAPI en cada microservicio (HU-93)
+        run: |
+          for p in 8081 8082 8083 8084 8085; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$p/v3/api-docs")
+            [ "$code" = "200" ] && echo "::notice title=OpenAPI $p::/v3/api-docs OK" || echo "::error title=OpenAPI::$p respondió $code"
+          done
+      - name: Prueba de punta a punta de la API
+        run: |
+          pip install -q requests
+          python e2e/flujo_api.py http://localhost:8090
+      - name: Prueba de las pantallas (web-frontend)
+        if: hashFiles('e2e/flujo_web.py') != ''
+        run: python e2e/flujo_web.py http://localhost:8080
+      - name: Errores en los registros de los servicios
+        if: failure()
+        run: |
+          for s in $SERVICIOS; do
+            docker compose logs --no-color $s 2>&1 | grep -E "ERROR|Exception|Caused by|APPLICATION FAILED" | grep -v "DEBUG" | head -8 | sed "s/^/::warning title=log $s::/"
+          done
+          docker compose ps

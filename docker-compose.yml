@@ -1,0 +1,142 @@
+# HU-98: levanta los siete servicios y MongoDB con un solo comando:
+#   docker compose up --build
+# Luego abre http://localhost:8080 (tienda) · http://localhost:8090 (api-gateway)
+# Swagger de cada servicio: http://localhost:8081/swagger-ui.html ... 8085
+
+x-servicio: &servicio
+  restart: unless-stopped
+  environment: &env-comun
+    SPRING_PROFILES_ACTIVE: local
+    JWT_SECRET: ${JWT_SECRET:-minimundo-secreto-local-solo-para-desarrollo}
+    DEMO_DATA: ${DEMO_DATA:-true}
+    JAVA_OPTS: "-XX:+UseSerialGC -XX:MaxRAMPercentage=65 -XX:TieredStopAtLevel=1 -Xss256k"
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ms-usuarios:
+    <<: *servicio
+    build: ./ms-usuarios
+    ports: ["8081:8081"]
+    environment:
+      <<: *env-comun
+      MONGODB_URI: mongodb://mongo:27017/db_usuarios
+      FRONTEND_URL: http://localhost:8080
+    depends_on:
+      mongo: { condition: service_healthy }
+    healthcheck: &salud
+      test: ["CMD-SHELL", "wget -qO- http://localhost:$${PORT:-8081}/actuator/health | grep -q UP"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  ms-catalogo:
+    <<: *servicio
+    build: ./ms-catalogo
+    ports: ["8082:8082"]
+    environment:
+      <<: *env-comun
+      PORT: 8082
+      MONGODB_URI: mongodb://mongo:27017/db_catalogo
+    depends_on:
+      mongo: { condition: service_healthy }
+    healthcheck:
+      <<: *salud
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP"]
+
+  ms-pedidos:
+    <<: *servicio
+    build: ./ms-pedidos
+    ports: ["8083:8083"]
+    environment:
+      <<: *env-comun
+      PORT: 8083
+      MONGODB_URI: mongodb://mongo:27017/db_pedidos
+      CATALOGO_URL: http://ms-catalogo:8082
+      LOGISTICA_URL: http://ms-logistica:8084
+    depends_on:
+      mongo: { condition: service_healthy }
+    healthcheck:
+      <<: *salud
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP"]
+
+  ms-logistica:
+    <<: *servicio
+    build: ./ms-logistica
+    ports: ["8084:8084"]
+    environment:
+      <<: *env-comun
+      PORT: 8084
+      MONGODB_URI: mongodb://mongo:27017/db_logistica
+      CATALOGO_URL: http://ms-catalogo:8082
+      PEDIDOS_URL: http://ms-pedidos:8083
+      ATENCION_URL: http://ms-atencion:8085
+      USUARIOS_URL: http://ms-usuarios:8081
+    depends_on:
+      mongo: { condition: service_healthy }
+    healthcheck:
+      <<: *salud
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q UP"]
+
+  ms-atencion:
+    <<: *servicio
+    build: ./ms-atencion
+    ports: ["8085:8085"]
+    environment:
+      <<: *env-comun
+      PORT: 8085
+      MONGODB_URI: mongodb://mongo:27017/db_atencion
+      PEDIDOS_URL: http://ms-pedidos:8083
+      CATALOGO_URL: http://ms-catalogo:8082
+      LOGISTICA_URL: http://ms-logistica:8084
+    depends_on:
+      mongo: { condition: service_healthy }
+    healthcheck:
+      <<: *salud
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health | grep -q UP"]
+
+  api-gateway:
+    <<: *servicio
+    build: ./api-gateway
+    ports: ["8090:8090"]
+    environment:
+      <<: *env-comun
+      PORT: 8090
+      USUARIOS_URL: http://ms-usuarios:8081
+      CATALOGO_URL: http://ms-catalogo:8082
+      PEDIDOS_URL: http://ms-pedidos:8083
+      LOGISTICA_URL: http://ms-logistica:8084
+      ATENCION_URL: http://ms-atencion:8085
+      CORS_ORIGINS: http://localhost:8080
+    healthcheck:
+      <<: *salud
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/actuator/health | grep -q UP"]
+
+  web-frontend:
+    <<: *servicio
+    build: ./web-frontend
+    ports: ["8080:8080"]
+    environment:
+      <<: *env-comun
+      PORT: 8080
+      GATEWAY_URL: http://api-gateway:8090
+    depends_on:
+      api-gateway: { condition: service_started }
+    healthcheck:
+      <<: *salud
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+
+volumes:
+  mongo-data:
