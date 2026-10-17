@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: ms-logistica
+  profiles:
+    default: local
+  data:
+    mongodb:
+      auto-index-creation: true
+  jackson:
+    time-zone: America/Bogota
+
+server:
+  port: ${PORT:8084}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:}
+  demo-data: ${DEMO_DATA:true}
+  http:
+    connect-timeout-segundos: ${HTTP_CONNECT_TIMEOUT:5}
+    read-timeout-segundos: ${HTTP_READ_TIMEOUT:20}
+  servicios:
+    catalogo: ${CATALOGO_URL:http://localhost:8082}
+    pedidos: ${PEDIDOS_URL:http://localhost:8083}
+    atencion: ${ATENCION_URL:http://localhost:8085}
+    usuarios: ${USUARIOS_URL:http://localhost:8081}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/db_logistica}
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:minimundo-secreto-local-solo-para-desarrollo}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+minimundo:
+  servicios:
+    catalogo: ${CATALOGO_URL}
+    pedidos: ${PEDIDOS_URL}
+    atencion: ${ATENCION_URL}
+    usuarios: ${USUARIOS_URL}
