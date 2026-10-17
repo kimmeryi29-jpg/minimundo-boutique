@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: ms-catalogo
+  profiles:
+    default: local
+  data:
+    mongodb:
+      auto-index-creation: true
+  jackson:
+    time-zone: America/Bogota
+  servlet:
+    multipart:
+      max-file-size: 3MB
+      max-request-size: 16MB
+
+server:
+  port: ${PORT:8082}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:}
+  imagenes:
+    max-kb: ${IMAGE_MAX_KB:2048}
+  demo-data: ${DEMO_DATA:true}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/db_catalogo}
+minimundo:
+  jwt:
+    secret: ${JWT_SECRET:minimundo-secreto-local-solo-para-desarrollo}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
