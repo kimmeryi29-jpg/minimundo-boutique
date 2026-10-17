@@ -43,7 +43,9 @@ jobs:
           python e2e/flujo_api.py http://localhost:8090
       - name: Prueba de las pantallas (web-frontend)
         if: hashFiles('e2e/flujo_web.py') != ''
-        run: python e2e/flujo_web.py http://localhost:8080
+        run: |
+          for i in $(seq 1 60); do curl -fs http://localhost:8080/actuator/health | grep -q UP && break; sleep 5; done
+          python e2e/flujo_web.py http://localhost:8080
       - name: Errores en los registros de los servicios
         if: failure()
         run: |

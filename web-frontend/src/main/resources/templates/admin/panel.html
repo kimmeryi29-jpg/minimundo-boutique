@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Panel del negocio', ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="maxEstado=${r.porEstado.isEmpty() ? 1 : #aggregates.sum(r.porEstado.![cantidad])}">
+    <div class="panel-cabecera">
+        <div><h1>Panel del negocio</h1><p class="texto-suave mb-0">Del <span th:text="${@fmt.dia(r.desde)}"></span> al <span th:text="${@fmt.dia(r.hasta)}"></span>.</p></div>
+        <form class="d-flex flex-wrap gap-2 align-items-end" method="get" th:action="@{/admin}">
+            <div><label class="form-label small mb-0" for="desde">Desde</label><input class="form-control form-control-sm" type="date" id="desde" name="desde" th:value="${desde != null ? desde : r.desde}"></div>
+            <div><label class="form-label small mb-0" for="hasta">Hasta</label><input class="form-control form-control-sm" type="date" id="hasta" name="hasta" th:value="${hasta != null ? hasta : r.hasta}"></div>
+            <button class="btn btn-sm btn-outline-primary" type="submit">Ver periodo</button>
+        </form>
+    </div>
+    <p class="aviso aviso-error" th:if="${error}" th:text="${error} + ' Mostramos el mes en curso.'"></p>
+    <p class="aviso aviso-info" th:if="${r.sinDatos}">No hay pedidos pagados en este periodo.</p>
+
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-lg-3"><div class="indicador"><div class="nombre">Ventas</div><div class="valor" th:text="${@fmt.pesos(r.ventasTotal)}"></div><div class="small texto-suave"><span th:text="${r.numeroVentas}"></span> pedidos pagados</div></div></div>
+        <div class="col-6 col-lg-3"><div class="indicador"><div class="nombre">Ticket promedio</div><div class="valor" th:text="${r.numeroVentas > 0} ? ${@fmt.pesos(r.ventasTotal / r.numeroVentas)} : '$0'"></div></div></div>
+        <div class="col-6 col-lg-3"><div class="indicador"><div class="nombre">De pago a despacho</div><div class="valor" th:text="${r.tiempoPromedioDespachoHoras != null} ? ${#numbers.formatDecimal(r.tiempoPromedioDespachoHoras, 1, 1)} + ' h' : 'Sin datos'"></div><div class="small texto-suave"><span th:text="${r.pedidosDespachados}"></span> despachados</div></div></div>
+        <div class="col-6 col-lg-3"><a class="indicador d-block text-decoration-none" th:href="@{/admin/reportes}"><div class="nombre">SKU bajo el mínimo</div><div class="valor" th:text="${alertas != null} ? ${alertas} : 'Sin datos'"></div><div class="small texto-suave">Descarga el inventario en Reportes</div></a></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <section class="hoja h-100">
+                <h2 class="h5">Pedidos por estado</h2>
+                <div class="vacio" th:if="${r.totalPedidos == 0}">Sin pedidos en el periodo.</div>
+                <div class="barra-estado" th:each="c : ${r.porEstado}" th:unless="${r.totalPedidos == 0}">
+                    <span th:text="${c.texto}"></span>
+                    <span class="pista"><span class="relleno d-block" th:style="'width:' + ${maxEstado > 0 ? c.cantidad * 100 / maxEstado : 0} + '%'"></span></span>
+                    <strong class="text-end" th:text="${c.cantidad}"></strong>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-6">
+            <section class="hoja h-100">
+                <h2 class="h5">Lo más vendido</h2>
+                <div class="vacio" th:if="${r.masVendidos.isEmpty()}">Aún no hay ventas en el periodo.</div>
+                <table class="table tabla" th:unless="${r.masVendidos.isEmpty()}">
+                    <thead><tr><th>Producto</th><th class="text-end">Unidades</th><th class="text-end">Vendido</th></tr></thead>
+                    <tbody><tr th:each="m : ${r.masVendidos}"><td th:text="${m.nombre}"></td><td class="text-end" th:text="${m.unidades}"></td><td class="text-end" th:text="${@fmt.pesos(m.total)}"></td></tr></tbody>
+                </table>
+            </section>
+        </div>
+        <div class="col-12">
+            <section class="hoja">
+                <h2 class="h5">Productos sin ventas en 30 días</h2>
+                <p class="aviso aviso-amarillo" th:if="${avisoSinVentas}" th:text="${avisoSinVentas}"></p>
+                <div class="vacio" th:if="${sinVentas.isEmpty() and avisoSinVentas == null}">Todos los productos publicados tuvieron ventas recientes.</div>
+                <table class="table tabla" th:unless="${sinVentas.isEmpty()}">
+                    <thead><tr><th>Código</th><th>Producto</th><th>Última venta</th><th class="text-end">Días sin vender</th></tr></thead>
+                    <tbody><tr th:each="s : ${sinVentas}"><td class="font-monospace" th:text="${s.codigo}"></td><td th:text="${s.nombre}"></td><td th:text="${s.ultimaVenta != null} ? ${@fmt.fecha(s.ultimaVenta)} : 'Nunca'"></td><td class="text-end" th:text="${s.diasSinVenta}"></td></tr></tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+</div>
+</body>
+</html>

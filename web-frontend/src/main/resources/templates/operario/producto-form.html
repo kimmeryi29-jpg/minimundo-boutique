@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel(${nuevo} ? 'Nuevo producto' : ${p['nombre']}, ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="c=${campos != null ? campos : {:}},
+        selColecciones=${p['coleccionIds'] != null ? p['coleccionIds'] : (p['colecciones'] != null ? p['colecciones'].![#this['id']] : {})}">
+    <a th:href="@{/operario/productos}">Volver a productos</a>
+    <div class="panel-cabecera mt-2">
+        <div>
+            <h1 th:text="${nuevo} ? 'Nuevo producto' : ${p['nombre']}"></h1>
+            <div class="texto-suave" th:unless="${nuevo}">Código <span class="font-monospace" th:text="${p['codigo']}"></span></div>
+        </div>
+        <span th:unless="${nuevo}" th:replace="~{fragments/comunes :: estado(${p['activo']} ? ${p['estado']} : 'INACTIVO')}"></span>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <form class="hoja" method="post" th:action="${nuevo} ? @{/operario/productos} : @{/operario/productos/{id}(id=${p['id']})}" novalidate>
+                <h2 class="h5">Datos de la prenda</h2>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="nombre">Nombre</label>
+                        <input class="form-control" id="nombre" name="nombre" maxlength="120" required th:value="${p['nombre']}" th:classappend="${c['nombre'] != null} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:text="${c['nombre']}"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="descripcion">Descripción</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="2000" th:text="${p['descripcion']}" th:classappend="${c['descripcion'] != null} ? 'is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:text="${c['descripcion']}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="categoriaId">Categoría</label>
+                        <select class="form-select" id="categoriaId" name="categoriaId" required th:classappend="${c['categoriaId'] != null} ? 'is-invalid'">
+                            <option value="">Elige una categoría</option>
+                            <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.nombre}" th:selected="${cat.id == p['categoriaId']}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:text="${c['categoriaId']}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="precio">Precio en pesos</label>
+                        <input class="form-control" id="precio" name="precio" inputmode="numeric" required th:value="${p['precio']}" th:classappend="${c['precio'] != null} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:text="${c['precio']}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="genero">Género</label>
+                        <select class="form-select" id="genero" name="genero" required th:classappend="${c['genero'] != null} ? 'is-invalid'">
+                            <option value="">Elige</option>
+                            <option th:each="o : ${opciones.generos}" th:value="${o.valor}" th:text="${o.texto}" th:selected="${o.valor == p['genero']}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:text="${c['genero']}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="rangoEdad">Rango de edad</label>
+                        <select class="form-select" id="rangoEdad" name="rangoEdad" required th:classappend="${c['rangoEdad'] != null} ? 'is-invalid'">
+                            <option value="">Elige</option>
+                            <option th:each="o : ${opciones.rangosEdad}" th:value="${o.valor}" th:text="${o.texto}" th:selected="${o.valor == p['rangoEdad']}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:text="${c['rangoEdad']}"></div>
+                    </div>
+                    <div class="col-12" th:unless="${colecciones.isEmpty()}">
+                        <span class="form-label d-block">Colecciones</span>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check" th:each="col : ${colecciones}">
+                                <input class="form-check-input" type="checkbox" name="coleccionIds" th:id="'col-' + ${col.id}" th:value="${col.id}" th:checked="${#lists.contains(selColecciones, col.id)}">
+                                <label class="form-check-label" th:for="'col-' + ${col.id}" th:text="${col.nombre}"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="h5 mt-4">Tallas y colores</h2>
+                <p class="small texto-suave">Cada combinación de talla y color es una variante con su propio SKU e inventario.</p>
+                <div class="aviso aviso-error" th:if="${c['variantes'] != null}" th:text="${c['variantes']}"></div>
+                <datalist id="tallas-sugeridas"><option th:each="t : ${opciones.tallasSugeridas}" th:value="${t}"></option></datalist>
+                <datalist id="colores-sugeridos"><option th:each="t : ${opciones.coloresSugeridos}" th:value="${t}"></option></datalist>
+                <div data-filas-variantes>
+                    <div class="fila-variante row g-2 align-items-center mb-2" th:each="v : ${p['variantes']}">
+                        <div class="col-4"><input class="form-control" data-campo="talla" list="tallas-sugeridas" placeholder="Talla" aria-label="Talla" th:value="${v['talla']}"></div>
+                        <div class="col-4"><input class="form-control" data-campo="color" list="colores-sugeridos" placeholder="Color" aria-label="Color" th:value="${v['color']}"></div>
+                        <div class="col-3 small font-monospace texto-suave" th:text="${v['sku']}"></div>
+                        <div class="col-1 text-end"><button class="btn btn-sm btn-link text-danger" type="button" data-quitar-variante aria-label="Quitar variante"><i class="bi bi-x-lg"></i></button></div>
+                    </div>
+                </div>
+                <template id="plantilla-variante">
+                    <div class="fila-variante row g-2 align-items-center mb-2">
+                        <div class="col-4"><input class="form-control" data-campo="talla" list="tallas-sugeridas" placeholder="Talla" aria-label="Talla"></div>
+                        <div class="col-4"><input class="form-control" data-campo="color" list="colores-sugeridos" placeholder="Color" aria-label="Color"></div>
+                        <div class="col-3 small texto-suave">SKU nuevo</div>
+                        <div class="col-1 text-end"><button class="btn btn-sm btn-link text-danger" type="button" data-quitar-variante aria-label="Quitar variante"><i class="bi bi-x-lg"></i></button></div>
+                    </div>
+                </template>
+                <button class="btn btn-sm btn-outline-primary" type="button" data-agregar-variante><i class="bi bi-plus-lg"></i> Agregar talla y color</button>
+
+                <div class="form-check mt-4" th:if="${nuevo}">
+                    <input class="form-check-input" type="checkbox" id="publicar" name="publicar" value="si">
+                    <label class="form-check-label" for="publicar">Publicar de una vez en el catálogo</label>
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-primary" type="submit" th:text="${nuevo} ? 'Crear producto' : 'Guardar cambios'"></button>
+                    <a class="btn btn-outline-secondary" th:href="@{/operario/productos}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-4" th:unless="${nuevo}">
+            <section class="hoja">
+                <h2 class="h5">Visibilidad</h2>
+                <p class="small texto-suave" th:if="${p['activo'] and p['estado'] == 'BORRADOR'}">En borrador la prenda no se ve en la tienda.</p>
+                <p class="small texto-suave" th:if="${p['activo'] and p['estado'] == 'PUBLICADO'}">La prenda se ve en la tienda.</p>
+                <p class="small texto-suave" th:unless="${p['activo']}">Desactivada: no se vende, pero conserva su historial.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <form th:if="${p['activo'] and p['estado'] == 'BORRADOR'}" th:action="@{/operario/productos/{id}/publicar(id=${p['id']})}" method="post"><button class="btn btn-sm btn-primary" type="submit">Publicar</button></form>
+                    <form th:if="${p['activo'] and p['estado'] == 'PUBLICADO'}" th:action="@{/operario/productos/{id}/borrador(id=${p['id']})}" method="post"><button class="btn btn-sm btn-outline-primary" type="submit">Pasar a borrador</button></form>
+                    <form th:if="${p['activo']}" th:action="@{/operario/productos/{id}/desactivar(id=${p['id']})}" method="post" data-confirmar="La prenda dejará de venderse. ¿Continuar?"><button class="btn btn-sm btn-outline-danger" type="submit">Desactivar</button></form>
+                    <form th:unless="${p['activo']}" th:action="@{/operario/productos/{id}/activar(id=${p['id']})}" method="post"><button class="btn btn-sm btn-primary" type="submit">Activar</button></form>
+                    <a class="btn btn-sm btn-link" th:if="${p['activo'] and p['estado'] == 'PUBLICADO'}" th:href="@{/producto/{id}(id=${p['id']})}" target="_blank">Ver en la tienda</a>
+                </div>
+            </section>
+
+            <section class="hoja" id="fotos">
+                <h2 class="h5">Fotos</h2>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <div class="text-center" th:each="img, st : ${p['imagenes']}">
+                        <img class="foto-miniatura d-block" th:src="@{/img/{i}(i=${img})}" th:alt="'Foto ' + ${st.count}">
+                        <form th:action="@{/operario/productos/{id}/imagenes/{img}/quitar(id=${p['id']},img=${img})}" method="post" data-confirmar="¿Quitar esta foto?">
+                            <button class="btn btn-sm btn-link text-danger p-0" type="submit">Quitar</button>
+                        </form>
+                    </div>
+                    <p class="small texto-suave" th:if="${p['imagenes'] == null or p['imagenes'].isEmpty()}">Aún no tiene fotos.</p>
+                </div>
+                <form th:action="@{/operario/productos/{id}/imagenes(id=${p['id']})}" method="post" enctype="multipart/form-data">
+                    <label class="form-label" for="archivos">Agregar fotos JPG o PNG de hasta 2 MB</label>
+                    <input class="form-control mb-2" type="file" id="archivos" name="archivos" accept="image/jpeg,image/png" multiple required>
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Subir</button>
+                </form>
+            </section>
+
+            <section class="hoja" id="descuento">
+                <h2 class="h5">Descuento del producto</h2>
+                <div th:if="${p['descuento'] != null}" class="mb-3">
+                    <p class="mb-1"><strong th:text="${p['descuento'].porcentaje} + '%'"></strong> del <span th:text="${@fmt.dia(p['descuento'].inicio)}"></span> al <span th:text="${@fmt.dia(p['descuento'].fin)}"></span></p>
+                    <p class="small mb-2" th:text="${p['descuento'].vigente} ? 'Vigente hoy.' : 'No está vigente hoy.'"></p>
+                    <form th:action="@{/operario/productos/{id}/descuento/quitar(id=${p['id']})}" method="post"><button class="btn btn-sm btn-link text-danger p-0" type="submit">Retirar descuento</button></form>
+                </div>
+                <p class="small texto-suave">Si la categoría también tiene descuento, se aplica el mayor de los dos.</p>
+                <form class="row g-2" th:action="@{/operario/productos/{id}/descuento(id=${p['id']})}" method="post">
+                    <div class="col-12"><label class="form-label" for="porcentaje">Porcentaje</label><input class="form-control" id="porcentaje" name="porcentaje" type="number" min="1" max="100" required></div>
+                    <div class="col-6"><label class="form-label" for="inicio">Desde</label><input class="form-control" id="inicio" name="inicio" type="date" required th:value="${@fmt.hoy()}"></div>
+                    <div class="col-6"><label class="form-label" for="fin">Hasta</label><input class="form-control" id="fin" name="fin" type="date" required></div>
+                    <div class="col-12"><button class="btn btn-sm btn-primary" type="submit">Guardar descuento</button></div>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+</body>
+</html>

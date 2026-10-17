@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Despachos y reparto', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera"><h1>Despachos y reparto</h1></div>
+
+    <section class="hoja" th:if="${!fallidas.isEmpty()}">
+        <h2 class="h5 text-danger">Entregas fallidas por reprogramar</h2>
+        <table class="table tabla">
+            <thead><tr><th>Pedido</th><th>Cliente</th><th>Ciudad</th><th>Novedad</th><th>Repartidor</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${fallidas}" class="resaltada">
+                <td class="fw-bold" th:text="${e.pedidoCodigo}"></td>
+                <td th:text="${e.clienteNombre}"></td>
+                <td th:text="${e.direccion.ciudad}"></td>
+                <td th:text="${e.ultimoMotivoFallido}"></td>
+                <td th:text="${e.repartidorNombre}"></td>
+                <td class="text-end"><a class="btn btn-sm btn-primary" th:href="@{/operario/envios/{id}(id=${e.id})}">Reasignar</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="hoja">
+        <h2 class="h5">Despachados sin repartidor</h2>
+        <div class="vacio" th:if="${sinAsignar.isEmpty()}">Todos los pedidos despachados tienen repartidor.</div>
+        <table class="table tabla" th:unless="${sinAsignar.isEmpty()}">
+            <thead><tr><th>Pedido</th><th>Cliente</th><th>Dirección</th><th>Guía</th><th style="width: 320px">Asignar repartidor</th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${sinAsignar}">
+                <td class="fw-bold"><a th:href="@{/operario/envios/{id}(id=${e.id})}" th:text="${e.pedidoCodigo}"></a></td>
+                <td th:text="${e.clienteNombre}"></td>
+                <td><span th:text="${e.direccion.direccion}"></span>, <span th:text="${e.direccion.ciudad}"></span></td>
+                <td th:text="${e.guia}"></td>
+                <td>
+                    <form class="d-flex gap-1" th:action="@{/operario/envios/{id}/repartidor(id=${e.id})}" method="post">
+                        <select class="form-select form-select-sm" name="repartidorId" required th:aria-label="'Repartidor para ' + ${e.pedidoCodigo}">
+                            <option value="">Elige</option>
+                            <option th:each="r : ${repartidores}" th:value="${r.id}" th:text="${r.nombre}"></option>
+                        </select>
+                        <button class="btn btn-sm btn-primary" type="submit">Asignar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="hoja">
+        <h2 class="h5">Asignados, por salir</h2>
+        <div class="vacio" th:if="${asignados.isEmpty()}">No hay pedidos esperando salir a reparto.</div>
+        <table class="table tabla" th:unless="${asignados.isEmpty()}">
+            <thead><tr><th>Pedido</th><th>Cliente</th><th>Ciudad</th><th>Repartidor</th><th>Asignado</th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${asignados}">
+                <td class="fw-bold"><a th:href="@{/operario/envios/{id}(id=${e.id})}" th:text="${e.pedidoCodigo}"></a></td>
+                <td th:text="${e.clienteNombre}"></td>
+                <td th:text="${e.direccion.ciudad}"></td>
+                <td th:text="${e.repartidorNombre}"></td>
+                <td th:text="${@fmt.fechaHora(e.fechaAsignacion)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="hoja">
+        <h2 class="h5">En camino</h2>
+        <div class="vacio" th:if="${enRuta.isEmpty()}">No hay pedidos en camino.</div>
+        <table class="table tabla" th:unless="${enRuta.isEmpty()}">
+            <thead><tr><th>Pedido</th><th>Cliente</th><th>Ciudad</th><th>Repartidor</th><th>Salió</th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${enRuta}">
+                <td class="fw-bold" th:text="${e.pedidoCodigo}"></td>
+                <td th:text="${e.clienteNombre}"></td>
+                <td th:text="${e.direccion.ciudad}"></td>
+                <td th:text="${e.repartidorNombre}"></td>
+                <td th:text="${@fmt.fechaHora(e.fechaEnRuta)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

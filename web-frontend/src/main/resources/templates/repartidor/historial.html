@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Historial de entregas', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <a th:href="@{/repartidor/entregas}">Volver a mis entregas</a>
+    <div class="panel-cabecera mt-2"><h1>Historial de entregas</h1></div>
+    <form class="hoja row g-2 align-items-end" method="get" th:action="@{/repartidor/historial}">
+        <div class="col-md-4"><label class="form-label" for="desde">Desde</label><input class="form-control" type="date" id="desde" name="desde" th:value="${desde}"></div>
+        <div class="col-md-4"><label class="form-label" for="hasta">Hasta</label><input class="form-control" type="date" id="hasta" name="hasta" th:value="${hasta}"></div>
+        <div class="col-md-4"><button class="btn btn-outline-primary w-100" type="submit">Filtrar</button></div>
+    </form>
+    <section class="hoja">
+        <div class="vacio" th:if="${historial.isEmpty()}">No hay entregas registradas en ese rango.</div>
+        <table class="table tabla" th:unless="${historial.isEmpty()}">
+            <thead><tr><th>Fecha</th><th>Pedido</th><th>Cliente</th><th>Dirección</th><th>Resultado</th><th>Novedad</th></tr></thead>
+            <tbody>
+            <tr th:each="h : ${historial}">
+                <td th:text="${@fmt.fechaHora(h.fecha)}"></td>
+                <td class="fw-bold" th:text="${h.pedidoCodigo}"></td>
+                <td th:text="${h.clienteNombre}"></td>
+                <td><span th:text="${h.direccion}"></span>, <span th:text="${h.ciudad}"></span></td>
+                <td><span th:replace="~{fragments/comunes :: estado(${h.resultado})}"></span></td>
+                <td><span th:text="${h.motivo}"></span><div class="small texto-suave" th:text="${h.detalle}"></div></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

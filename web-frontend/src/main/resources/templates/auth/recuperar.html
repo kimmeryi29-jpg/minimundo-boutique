@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Recuperar contraseña', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="tarjeta-login">
+        <form class="hoja p-4" th:action="@{/recuperar}" method="post">
+            <h1 class="h2 mb-1">Recupera tu contraseña</h1>
+            <p class="texto-suave">Te enviamos un enlace a tu correo. Vence en 30 minutos y sirve una sola vez.</p>
+            <div class="aviso aviso-amarillo mb-3" th:if="${enlaceDemo}">
+                <div th:text="${ok}"></div>
+                <a class="d-block mt-2 text-break" th:href="${enlaceDemo}">Abrir el enlace de recuperación</a>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="email">Correo registrado</label>
+                <input id="email" class="form-control" type="email" name="email" th:value="${email}" required>
+            </div>
+            <button class="btn btn-primary w-100" type="submit">Enviar enlace</button>
+            <p class="mt-3 mb-0 text-center"><a th:href="@{/login}">Volver a iniciar sesión</a></p>
+        </form>
+    </div>
+</div>
+</body>
+</html>

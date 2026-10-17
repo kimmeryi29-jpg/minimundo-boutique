@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Radicar PQRS', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <h1 class="mb-3">Radicar una PQRS</h1>
+    <form class="hoja medida" th:action="@{/cuenta/pqrs}" method="post" novalidate>
+        <fieldset class="mb-3">
+            <legend class="form-label">Tipo</legend>
+            <div class="selector">
+                <th:block th:each="t : ${ {{'PETICION','Petición'},{'QUEJA','Queja'},{'RECLAMO','Reclamo'},{'SUGERENCIA','Sugerencia'}} }">
+                    <input type="radio" name="tipo" th:id="'tipo-' + ${t[0]}" th:value="${t[0]}" th:checked="${tipo == t[0]}">
+                    <label th:for="'tipo-' + ${t[0]}" th:text="${t[1]}"></label>
+                </th:block>
+            </div>
+            <div class="text-danger small fw-bold mt-1" th:if="${campos != null and campos['tipo'] != null}" th:text="${campos['tipo']}"></div>
+        </fieldset>
+        <div class="mb-3">
+            <label class="form-label" for="pedidoId">Pedido relacionado (opcional)</label>
+            <select class="form-select" id="pedidoId" name="pedidoId">
+                <option value="">No está relacionada con un pedido</option>
+                <option th:each="p : ${pedidos}" th:value="${p.id}" th:text="${p.codigo} + ' del ' + ${@fmt.fecha(p.fechaCreacion)} + ' (' + ${@fmt.estado(p.estado)} + ')'" th:selected="${pedidoId == p.id}"></option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="descripcion">Cuéntanos qué pasó</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="5" maxlength="2000" th:text="${descripcion}" th:classappend="${campos != null and campos['descripcion'] != null} ? 'is-invalid'" required></textarea>
+            <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['descripcion']}"></div>
+        </div>
+        <button class="btn btn-primary" type="submit">Radicar</button>
+        <a class="btn btn-link" th:href="@{/cuenta/pqrs}">Cancelar</a>
+    </form>
+</div>
+</body>
+</html>

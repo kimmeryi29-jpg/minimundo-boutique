@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout/tienda :: tienda(${p.nombre}, ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <nav aria-label="Ruta" class="mb-3"><a th:href="@{/catalogo}">Catálogo</a> <span class="texto-suave">/</span> <a th:if="${p.categoriaId}" th:href="@{/catalogo(categoria=${p.categoriaId})}" th:text="${p.categoriaNombre}"></a></nav>
+    <div class="row g-4">
+        <div class="col-md-6" data-galeria>
+            <div class="galeria-principal">
+                <img th:if="${!p.imagenes.isEmpty()}" data-principal th:src="@{/img/{i}(i=${p.imagenes[0]})}" th:alt="${p.nombre}">
+                <div th:if="${p.imagenes.isEmpty()}" class="h-100 d-flex align-items-center justify-content-center"><i class="bi bi-image fs-1 texto-suave"></i></div>
+            </div>
+            <div class="galeria-miniaturas d-flex gap-2 mt-2" th:if="${#lists.size(p.imagenes) > 1}">
+                <button type="button" th:each="img, st : ${p.imagenes}" th:classappend="${st.first} ? 'activo'" th:attr="data-miniatura=@{/img/{i}(i=${img})}" th:aria-label="'Ver foto ' + ${st.count}">
+                    <img class="foto-miniatura" th:src="@{/img/{i}(i=${img})}" alt="">
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h1 th:text="${p.nombre}">Producto</h1>
+            <div class="texto-suave mb-3"><span th:text="${p.generoTexto}"></span>, <span th:text="${p.rangoEdadTexto}"></span>. Ref. <span th:text="${p.codigo}"></span></div>
+            <div class="mb-3">
+                <th:block th:if="${p.descuentoPorcentaje > 0}">
+                    <span class="precio-tachado fs-5 me-2" th:text="${@fmt.pesos(p.precio)}"></span>
+                    <span class="precio-oferta fs-3" th:text="${@fmt.pesos(p.precioFinal)}"></span>
+                    <span class="chip-oferta ms-2" th:text="'Ahorras ' + ${@fmt.pesos(p.precio - p.precioFinal)}"></span>
+                </th:block>
+                <span th:unless="${p.descuentoPorcentaje > 0}" class="fs-3 fw-bold" th:text="${@fmt.pesos(p.precio)}"></span>
+            </div>
+            <p class="medida" th:text="${p.descripcion}"></p>
+
+            <form class="hoja mt-3" th:action="@{/carrito/agregar}" method="post" th:attr="data-variantes=${variantesJson}">
+                <input type="hidden" name="sku" value="">
+                <input type="hidden" name="productoId" th:value="${p.id}">
+                <fieldset class="mb-3">
+                    <legend class="form-label">Talla</legend>
+                    <div class="selector">
+                        <th:block th:each="t, st : ${p.tallas}">
+                            <input type="radio" name="talla" th:id="'t' + ${st.index}" th:value="${t}" th:checked="${#lists.size(p.tallas) == 1}">
+                            <label th:for="'t' + ${st.index}" th:text="${t}">6M</label>
+                        </th:block>
+                    </div>
+                </fieldset>
+                <fieldset class="mb-3">
+                    <legend class="form-label">Color</legend>
+                    <div class="selector">
+                        <th:block th:each="c, st : ${p.colores}">
+                            <input type="radio" name="color" th:id="'c' + ${st.index}" th:value="${c}" th:checked="${#lists.size(p.colores) == 1}">
+                            <label th:for="'c' + ${st.index}" th:text="${c}">Rosa</label>
+                        </th:block>
+                    </div>
+                </fieldset>
+                <p data-disponibilidad class="texto-suave">Elige la talla y el color.</p>
+                <div class="d-flex gap-2 align-items-end">
+                    <div style="width: 6.5rem">
+                        <label class="form-label" for="cantidad">Cantidad</label>
+                        <input id="cantidad" class="form-control" type="number" name="cantidad" value="1" min="1">
+                    </div>
+                    <button class="btn btn-primary flex-grow-1" type="submit" disabled sec:authorize="hasRole('CLIENTE')"><i class="bi bi-bag-plus"></i> Agregar al carrito</button>
+                    <a class="btn btn-primary flex-grow-1" sec:authorize="!isAuthenticated()" th:href="@{/login}">Inicia sesión para comprar</a>
+                    <button class="btn btn-primary flex-grow-1" type="submit" disabled sec:authorize="isAuthenticated() and !hasRole('CLIENTE')" title="Solo los clientes compran">Agregar al carrito</button>
+                </div>
+                <p class="aviso-agotado mt-3 mb-0" th:if="${agotadoTotal}">Este producto está agotado en todas sus tallas por ahora.</p>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

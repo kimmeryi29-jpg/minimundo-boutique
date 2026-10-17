@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Producto no disponible', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="hoja vacio">
+        <i class="bi bi-emoji-frown"></i>
+        <h1 class="h3" th:text="${mensaje}">Este producto ya no está disponible.</h1>
+        <p>Puede que lo hayamos retirado del catálogo. Mira otras prendas de la misma edad.</p>
+        <a class="btn btn-primary" th:href="@{/catalogo}">Ir al catálogo</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel(${nuevo} ? 'Nuevo usuario' : ${u['nombre']}, ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="c=${campos != null ? campos : {:}}, roles=${ {'CLIENTE','ASESOR','OPERARIO','REPARTIDOR','ADMIN'} }">
+    <a th:href="@{/admin/usuarios}">Volver a usuarios</a>
+    <div class="panel-cabecera mt-2"><h1 th:text="${nuevo} ? 'Nuevo usuario' : ${u['nombre']}"></h1></div>
+    <form class="hoja" style="max-width: 640px" method="post" th:action="${nuevo} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${u['id']})}" novalidate>
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label" for="nombre">Nombre completo</label>
+                <input class="form-control" id="nombre" name="nombre" required maxlength="100" th:value="${u['nombre']}" th:classappend="${c['nombre'] != null} ? 'is-invalid'">
+                <div class="invalid-feedback" th:text="${c['nombre']}"></div>
+            </div>
+            <div class="col-md-7">
+                <label class="form-label" for="email">Correo</label>
+                <input class="form-control" id="email" name="email" type="email" required th:value="${u['email']}" th:classappend="${c['email'] != null} ? 'is-invalid'">
+                <div class="invalid-feedback" th:text="${c['email']}"></div>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label" for="telefono">Teléfono</label>
+                <input class="form-control" id="telefono" name="telefono" th:value="${u['telefono']}">
+            </div>
+            <div class="col-md-7">
+                <label class="form-label" for="rol">Rol</label>
+                <select class="form-select" id="rol" name="rol" required th:classappend="${c['rol'] != null} ? 'is-invalid'">
+                    <option th:each="r : ${roles}" th:value="${r}" th:text="${@fmt.estado(r)}" th:selected="${r == u['rol']}"></option>
+                </select>
+                <div class="invalid-feedback" th:text="${c['rol']}"></div>
+            </div>
+            <div class="col-md-5" th:if="${nuevo}">
+                <label class="form-label" for="password">Contraseña inicial</label>
+                <input class="form-control" id="password" name="password" type="password" minlength="8" required autocomplete="new-password" th:classappend="${c['password'] != null} ? 'is-invalid'">
+                <div class="invalid-feedback" th:text="${c['password']}"></div>
+                <div class="form-text">Mínimo 8 caracteres. Compártela por un canal seguro.</div>
+            </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit" th:text="${nuevo} ? 'Crear usuario' : 'Guardar cambios'"></button>
+            <a class="btn btn-outline-secondary" th:href="@{/admin/usuarios}">Cancelar</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

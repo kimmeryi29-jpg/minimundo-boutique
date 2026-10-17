@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" th:fragment="panel(titulo, contenido)" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/comunes :: cabeza(${titulo})}"></head>
+<body>
+<a class="visually-hidden-focusable" href="#contenido">Saltar al contenido</a>
+<div class="panel-menu-movil">
+    <a class="marca" th:href="@{/}"><span class="sol" aria-hidden="true"></span>MiniMundo</a>
+    <button class="btn btn-sm btn-outline-light" type="button" onclick="document.getElementById('lateral').classList.toggle('abierto')">Menú</button>
+</div>
+<div class="panel">
+    <aside id="lateral" class="panel-lateral" aria-label="Menú del panel">
+        <a class="marca" th:href="@{/}"><span class="sol" aria-hidden="true"></span>MiniMundo</a>
+        <div class="rol" th:text="${yo.nombre}">Usuario</div>
+
+        <nav sec:authorize="hasRole('ADMIN')">
+            <a class="opcion" th:classappend="${ruta == '/admin'} ? 'activo'" th:href="@{/admin}"><i class="bi bi-graph-up"></i>Panel del negocio</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/admin/reportes')} ? 'activo'" th:href="@{/admin/reportes}"><i class="bi bi-file-earmark-spreadsheet"></i>Reportes</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/admin/pedidos')} ? 'activo'" th:href="@{/admin/pedidos}"><i class="bi bi-receipt"></i>Pedidos</a>
+            <div class="grupo">Configuración</div>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/admin/usuarios')} ? 'activo'" th:href="@{/admin/usuarios}"><i class="bi bi-people"></i>Usuarios y roles</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/admin/parametros')} ? 'activo'" th:href="@{/admin/parametros}"><i class="bi bi-sliders"></i>Parámetros</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/admin/auditoria')} ? 'activo'" th:href="@{/admin/auditoria}"><i class="bi bi-shield-check"></i>Auditoría</a>
+        </nav>
+
+        <nav sec:authorize="hasRole('ASESOR')">
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/asesor/pqrs')} ? 'activo'" th:href="@{/asesor/pqrs}"><i class="bi bi-inbox"></i>Bandeja de PQRS</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/asesor/solicitudes')} ? 'activo'" th:href="@{/asesor/solicitudes}"><i class="bi bi-arrow-left-right"></i>Cambios y devoluciones</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/asesor/clientes')} ? 'activo'" th:href="@{/asesor/clientes}"><i class="bi bi-person-lines-fill"></i>Clientes</a>
+        </nav>
+
+        <nav sec:authorize="hasRole('OPERARIO')">
+            <div class="grupo">Pedidos</div>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/operario/alistamiento')} ? 'activo'" th:href="@{/operario/alistamiento}"><i class="bi bi-box-seam"></i>Alistamiento</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/operario/despachos')} ? 'activo'" th:href="@{/operario/despachos}"><i class="bi bi-truck"></i>Despachos y reparto</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/operario/devoluciones')} ? 'activo'" th:href="@{/operario/devoluciones}"><i class="bi bi-arrow-counterclockwise"></i>Devoluciones</a>
+            <div class="grupo">Catálogo</div>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/operario/productos')} ? 'activo'" th:href="@{/operario/productos}"><i class="bi bi-tags"></i>Productos</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/operario/categorias')} ? 'activo'" th:href="@{/operario/categorias}"><i class="bi bi-collection"></i>Categorías y colecciones</a>
+            <div class="grupo">Bodega</div>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/operario/inventario')} ? 'activo'" th:href="@{/operario/inventario}"><i class="bi bi-boxes"></i>Inventario</a>
+        </nav>
+
+        <nav sec:authorize="hasRole('REPARTIDOR')">
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/repartidor/entregas')} ? 'activo'" th:href="@{/repartidor/entregas}"><i class="bi bi-geo-alt"></i>Mis entregas</a>
+            <a class="opcion" th:classappend="${#strings.startsWith(ruta,'/repartidor/historial')} ? 'activo'" th:href="@{/repartidor/historial}"><i class="bi bi-clock-history"></i>Historial</a>
+        </nav>
+
+        <div class="pie">
+            <a class="opcion" th:href="@{/catalogo}"><i class="bi bi-shop"></i>Ver la tienda</a>
+            <form th:action="@{/logout}" method="post">
+                <button class="btn btn-sm btn-outline-light mt-2 w-100" type="submit">Cerrar sesión</button>
+            </form>
+        </div>
+    </aside>
+    <main id="contenido" class="panel-contenido">
+        <div th:replace="~{fragments/comunes :: avisos}"></div>
+        <th:block th:replace="${contenido}"></th:block>
+    </main>
+</div>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

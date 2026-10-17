@@ -30,7 +30,8 @@ public class Fmt {
             Map.entry("OPERARIO", "Operario de catálogo e inventario"), Map.entry("REPARTIDOR", "Repartidor"),
             Map.entry("ADMIN", "Administrador"), Map.entry("ENTRADA", "Entrada"), Map.entry("SALIDA", "Salida"),
             Map.entry("AJUSTE", "Ajuste"), Map.entry("BORRADOR", "Borrador"), Map.entry("PUBLICADO", "Publicado"),
-            Map.entry("FALLIDO", "Fallido"));
+            Map.entry("FALLIDO", "Fallido"), Map.entry("INACTIVO", "Desactivado"),
+            Map.entry("ACTIVO", "Activo"));
 
     private static final Map<String, String> CLASES = Map.ofEntries(
             Map.entry("CREADO", "estado-gris"), Map.entry("PAGADO", "estado-azul"),
@@ -40,7 +41,8 @@ public class Fmt {
             Map.entry("EN_GESTION", "estado-amarillo"), Map.entry("CERRADA", "estado-verde"),
             Map.entry("PENDIENTE", "estado-amarillo"), Map.entry("APROBADA", "estado-verde"),
             Map.entry("RECHAZADA", "estado-rojo"), Map.entry("BORRADOR", "estado-gris"),
-            Map.entry("PUBLICADO", "estado-verde"), Map.entry("FALLIDO", "estado-rojo"));
+            Map.entry("PUBLICADO", "estado-verde"), Map.entry("FALLIDO", "estado-rojo"),
+            Map.entry("INACTIVO", "estado-rojo"), Map.entry("ACTIVO", "estado-verde"));
 
     public String pesos(Object valor) {
         if (valor == null) {

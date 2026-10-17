@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Pedido ' + ${pedido.codigo}, ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="pasos=${ {'PAGADO','EN_ALISTAMIENTO','DESPACHADO','EN_RUTA','ENTREGADO'} }, actual=${pasos.indexOf(pedido.estado)}">
+    <div class="aviso aviso-ok mb-3" th:if="${confirmado}">
+        <strong>¡Compra confirmada!</strong> Tu código de pedido es <strong th:text="${pedido.codigo}"></strong>. Guárdalo como comprobante.
+    </div>
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+            <h1 class="mb-1">Pedido <span th:text="${pedido.codigo}"></span></h1>
+            <div class="texto-suave">Hecho el <span th:text="${@fmt.fechaHora(pedido.fechaCreacion)}"></span></div>
+        </div>
+        <span class="fs-6" th:replace="~{fragments/comunes :: estado(${pedido.estado})}"></span>
+    </div>
+
+    <section class="hoja" th:if="${pedido.estado != 'CANCELADO'}">
+        <h2 class="visually-hidden">Seguimiento</h2>
+        <ol class="progreso">
+            <li th:each="paso, st : ${pasos}" th:classappend="${st.index <= actual} ? 'hecho'" th:text="${@fmt.estado(paso)}"></li>
+        </ol>
+        <div class="mt-3" th:if="${pedido.estado == 'EN_RUTA'}">
+            <p class="aviso aviso-info mb-0"><i class="bi bi-truck"></i> Tu pedido va en camino con <strong th:text="${pedido.repartidorNombre}"></strong> desde <span th:text="${@fmt.fechaHora(pedido.fechaEnRuta)}"></span>.</p>
+        </div>
+        <div class="mt-3" th:if="${pedido.estado == 'ENTREGADO'}">
+            <p class="aviso aviso-ok mb-0">Entregado el <strong th:text="${@fmt.fechaHora(pedido.fechaEntrega)}"></strong><th:block th:if="${pedido.repartidorNombre}"> por <span th:text="${pedido.repartidorNombre}"></span></th:block>.</p>
+        </div>
+        <div class="mt-3" th:if="${pedido.guia != null}">
+            Transportadora <strong th:text="${pedido.transportadora}"></strong>, guía <strong th:text="${pedido.guia}"></strong>.
+        </div>
+    </section>
+    <section class="hoja aviso-error" th:if="${pedido.estado == 'CANCELADO'}">
+        Este pedido fue cancelado el <span th:text="${@fmt.fechaHora(pedido.fechaCancelacion)}"></span>.
+    </section>
+
+    <div class="row g-3 mt-1">
+        <div class="col-lg-8">
+            <section class="hoja">
+                <h2 class="h4">Productos</h2>
+                <table class="table tabla">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th class="text-end">Valor</th><th th:if="${pedido.estado == 'ENTREGADO'}"></th></tr></thead>
+                    <tbody>
+                    <tr th:each="i : ${pedido.items}">
+                        <td><span class="fw-bold" th:text="${i.nombre}"></span><div class="texto-suave small">Talla <span th:text="${i.talla}"></span>, color <span th:text="${i.color}"></span></div></td>
+                        <td th:text="${i.cantidad}"></td>
+                        <td class="text-end" th:text="${@fmt.pesos(i.precioUnitario * i.cantidad)}"></td>
+                        <td class="text-end" th:if="${pedido.estado == 'ENTREGADO'}">
+                            <a class="btn btn-sm btn-outline-primary" th:href="@{/cuenta/pedidos/{id}/solicitud(id=${pedido.id},sku=${i.sku},tipo='CAMBIO')}">Cambiar talla</a>
+                            <a class="btn btn-sm btn-link" th:href="@{/cuenta/pedidos/{id}/solicitud(id=${pedido.id},sku=${i.sku},tipo='DEVOLUCION')}">Devolver</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p class="small texto-suave mb-0" th:if="${pedido.estado == 'ENTREGADO' and plazo != null}">Puedes pedir cambios o devoluciones hasta <span th:text="${plazo}"></span> días después de la entrega.</p>
+            </section>
+            <section class="hoja" th:if="${solicitudes != null and !solicitudes.isEmpty()}">
+                <h2 class="h4">Solicitudes de este pedido</h2>
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex justify-content-between py-1" th:each="s : ${solicitudes}">
+                        <span><strong th:text="${s.numero}"></strong>: <span th:text="${s.tipoTexto}"></span> de <span th:text="${s.nombreProducto}"></span></span>
+                        <span th:replace="~{fragments/comunes :: estado(${s.estado})}"></span>
+                    </li>
+                </ul>
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="hoja">
+                <h2 class="h4">Entrega</h2>
+                <p class="mb-1 fw-bold" th:text="${pedido.direccionEnvio.nombreRecibe}"></p>
+                <p class="mb-1" th:text="${pedido.direccionEnvio.direccion}"></p>
+                <p class="mb-1"><span th:text="${pedido.direccionEnvio.barrio}"></span> <span th:text="${pedido.direccionEnvio.ciudad}"></span></p>
+                <p class="mb-0 texto-suave" th:text="${pedido.direccionEnvio.telefono}"></p>
+            </section>
+            <section class="hoja">
+                <h2 class="h4">Pago</h2>
+                <dl class="row mb-0">
+                    <dt class="col-7 fw-normal">Subtotal</dt><dd class="col-5 text-end" th:text="${@fmt.pesos(pedido.subtotal)}"></dd>
+                    <dt class="col-7 fw-normal">Descuentos</dt><dd class="col-5 text-end precio-oferta" th:text="'-' + ${@fmt.pesos(pedido.descuentos)}"></dd>
+                    <dt class="col-7 fw-normal">Envío</dt><dd class="col-5 text-end" th:text="${@fmt.pesos(pedido.envio)}"></dd>
+                    <dt class="col-7">Total</dt><dd class="col-5 text-end fw-bold" th:text="${@fmt.pesos(pedido.total)}"></dd>
+                </dl>
+                <p class="small texto-suave mt-2 mb-0" th:if="${pedido.tarjetaUltimos4}">Tarjeta terminada en <span th:text="${pedido.tarjetaUltimos4}"></span>.</p>
+            </section>
+            <section class="hoja">
+                <a class="btn btn-outline-primary w-100" th:href="@{/cuenta/pqrs/nueva(pedidoId=${pedido.id})}">¿Un problema con este pedido?</a>
+                <form class="mt-2" th:if="${pedido.puedeCancelar}" th:action="@{/cuenta/pedidos/{id}/cancelar(id=${pedido.id})}" method="post" data-confirmar="¿Cancelar este pedido? Esta acción no se puede deshacer.">
+                    <button class="btn btn-link text-danger w-100" type="submit">Cancelar el pedido</button>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+</body>
+</html>

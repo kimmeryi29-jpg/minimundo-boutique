@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Devoluciones', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera"><div><h1>Reingreso de devoluciones</h1><p class="texto-suave mb-0">Solicitudes aprobadas por servicio al cliente cuya mercancía debe volver al inventario.</p></div></div>
+    <section class="hoja">
+        <div class="vacio" th:if="${pendientes.isEmpty()}"><i class="bi bi-check2-all"></i>No hay mercancía pendiente por reingresar.</div>
+        <table class="table tabla" th:unless="${pendientes.isEmpty()}">
+            <thead><tr><th>Solicitud</th><th>Tipo</th><th>Prenda</th><th>SKU</th><th>Cantidad</th><th>Pedido</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${pendientes}">
+                <td class="fw-bold" th:text="${s.numero}"></td>
+                <td th:text="${s.tipoTexto}"></td>
+                <td><span th:text="${s.nombreProducto}"></span> <span class="small texto-suave">talla <span th:text="${s.talla}"></span>, <span th:text="${s.color}"></span></span></td>
+                <td class="font-monospace" th:text="${s.sku}"></td>
+                <td th:text="${s.cantidad}"></td>
+                <td th:text="${s.pedidoCodigo}"></td>
+                <td class="text-end">
+                    <form th:action="@{/operario/devoluciones/{id}/reingresar(id=${s.id})}" method="post" data-confirmar="¿Confirmas que recibiste la prenda en buen estado?">
+                        <button class="btn btn-sm btn-primary" type="submit">Reingresar al inventario</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+    <section class="hoja" th:if="${!reingresadas.isEmpty()}">
+        <h2 class="h5">Ya reingresadas</h2>
+        <table class="table tabla">
+            <thead><tr><th>Solicitud</th><th>Prenda</th><th>Cantidad</th><th>Reingresada</th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${reingresadas}">
+                <td th:text="${s.numero}"></td>
+                <td th:text="${s.nombreProducto} + ' (' + ${s.talla} + ')'"></td>
+                <td th:text="${s.cantidad}"></td>
+                <td th:text="${@fmt.fechaHora(s.fechaReingreso)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

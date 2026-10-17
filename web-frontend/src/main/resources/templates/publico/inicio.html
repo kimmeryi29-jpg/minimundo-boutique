@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Ropa infantil de 0 a 12 años', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <section class="portada">
+        <h1>Ropa para crecer, en la talla exacta.</h1>
+        <p class="texto-suave mt-3">Bodies, vestidos, pijamas y tenis para niños de 0 a 12 años. Antes de comprar ves cuántas unidades quedan de cada talla y color.</p>
+    </section>
+
+    <section class="regla" aria-labelledby="titulo-edades">
+        <h2 id="titulo-edades" class="h5 mb-0">¿Qué edad tiene?</h2>
+        <div class="regla-marcas">
+            <a class="regla-tramo" th:each="r : ${opciones.rangosEdad}" th:href="@{/catalogo(edad=${r.valor})}">
+                <strong th:text="${#strings.replace(#strings.replace(r.texto,' meses',''),' años','')}">0 a 12</strong>
+                <span th:text="${#strings.contains(r.texto,'meses')} ? 'meses' : 'años'">años</span>
+            </a>
+        </div>
+    </section>
+
+    <section class="mt-5" th:if="${!colecciones.isEmpty()}">
+        <h2 class="mb-3">Colecciones de temporada</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <a th:each="c : ${colecciones}" class="btn btn-outline-primary" th:href="@{/catalogo(coleccion=${c.id})}" th:text="${c.nombre}">Colección</a>
+            <a th:each="c : ${categorias}" class="btn btn-light border" th:href="@{/catalogo(categoria=${c.id})}" th:text="${c.nombre}">Categoría</a>
+        </div>
+    </section>
+
+    <section class="mt-5" th:if="${!ofertas.isEmpty()}">
+        <div class="hoja-titulo"><h2>Con descuento esta semana</h2><a th:href="@{/catalogo}">Ver todo el catálogo</a></div>
+        <div class="row g-3">
+            <div class="col-6 col-md-3" th:each="p : ${ofertas}"><a th:replace="~{fragments/comunes :: prenda(${p})}"></a></div>
+        </div>
+    </section>
+
+    <section class="mt-5">
+        <div class="hoja-titulo"><h2>Recién llegados</h2><a th:href="@{/catalogo}">Ver todo el catálogo</a></div>
+        <div class="row g-3" th:if="${!nuevos.isEmpty()}">
+            <div class="col-6 col-md-3" th:each="p : ${nuevos}"><a th:replace="~{fragments/comunes :: prenda(${p})}"></a></div>
+        </div>
+        <div class="hoja vacio" th:if="${nuevos.isEmpty()}"><i class="bi bi-bag"></i>Todavía no hay productos publicados.</div>
+    </section>
+</div>
+</body>
+</html>

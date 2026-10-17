@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Carrito', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <h1 class="mb-3">Tu carrito</h1>
+    <div class="hoja vacio" th:if="${carrito.items.isEmpty()}">
+        <i class="bi bi-bag"></i>
+        <p class="mb-2">Tu carrito está vacío.</p>
+        <a class="btn btn-primary" th:href="@{/catalogo}">Ver el catálogo</a>
+    </div>
+    <div class="row g-4" th:unless="${carrito.items.isEmpty()}">
+        <div class="col-lg-8">
+            <div class="aviso aviso-amarillo mb-3" th:each="a : ${carrito.advertencias}" th:text="${a}"></div>
+            <div class="hoja">
+                <div class="table-responsive">
+                    <table class="table tabla">
+                        <thead><tr><th>Producto</th><th>Precio</th><th style="width:150px">Cantidad</th><th class="text-end">Subtotal</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="i : ${carrito.items}">
+                            <td>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <img th:if="${i.imagenId}" class="foto-miniatura" th:src="@{/img/{x}(x=${i.imagenId})}" alt="">
+                                    <div>
+                                        <a class="fw-bold" th:href="@{/producto/{p}(p=${i.productoId})}" th:text="${i.nombre}"></a>
+                                        <div class="texto-suave small">Talla <span th:text="${i.talla}"></span>, color <span th:text="${i.color}"></span></div>
+                                        <div class="small" th:classappend="${i.disponible < i.cantidad} ? 'aviso-agotado' : 'texto-suave'" th:text="${i.disponible} + ' disponibles'"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div th:if="${i.descuentoPorcentaje > 0}" class="precio-tachado small" th:text="${@fmt.pesos(i.precio)}"></div>
+                                <span th:classappend="${i.descuentoPorcentaje > 0} ? 'precio-oferta'" th:text="${@fmt.pesos(i.precioFinal)}"></span>
+                            </td>
+                            <td>
+                                <form class="d-flex gap-1" th:action="@{/carrito/{s}/cantidad(s=${i.sku})}" method="post">
+                                    <label class="visually-hidden" th:for="'cant-' + ${i.sku}">Cantidad</label>
+                                    <input class="form-control form-control-sm" th:id="'cant-' + ${i.sku}" type="number" name="cantidad" min="1" th:max="${i.disponible}" th:value="${i.cantidad}" style="width:70px">
+                                    <button class="btn btn-sm btn-outline-primary" type="submit">Cambiar</button>
+                                </form>
+                            </td>
+                            <td class="text-end fw-bold" th:text="${@fmt.pesos(i.subtotal)}"></td>
+                            <td class="text-end">
+                                <form th:action="@{/carrito/{s}/quitar(s=${i.sku})}" method="post">
+                                    <button class="btn btn-sm btn-link text-danger" type="submit" th:aria-label="'Quitar ' + ${i.nombre}"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="hoja">
+                <h2 class="h4">Resumen</h2>
+                <dl class="row mb-0">
+                    <dt class="col-7 fw-normal">Subtotal</dt><dd class="col-5 text-end" th:text="${@fmt.pesos(carrito.subtotal)}"></dd>
+                    <dt class="col-7 fw-normal">Descuentos</dt><dd class="col-5 text-end precio-oferta" th:text="'-' + ${@fmt.pesos(carrito.descuentos)}"></dd>
+                    <dt class="col-7 fw-normal">Envío</dt><dd class="col-5 text-end texto-suave">Se calcula según tu ciudad</dd>
+                    <dt class="col-7 fs-5">Total</dt><dd class="col-5 text-end fs-5 fw-bold" th:text="${@fmt.pesos(carrito.total)}"></dd>
+                </dl>
+                <a class="btn btn-primary w-100 mt-3" th:href="@{/checkout}" th:classappend="${!carrito.advertencias.isEmpty()} ? 'disabled'">Continuar al pago</a>
+                <p class="small texto-suave mt-2 mb-0" th:if="${!carrito.advertencias.isEmpty()}">Ajusta las cantidades marcadas para continuar.</p>
+                <a class="btn btn-link w-100" th:href="@{/catalogo}">Seguir comprando</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

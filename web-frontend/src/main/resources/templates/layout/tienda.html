@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" th:fragment="tienda(titulo, contenido)" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/comunes :: cabeza(${titulo})}"></head>
+<body>
+<a class="visually-hidden-focusable" href="#contenido">Saltar al contenido</a>
+<header class="barra-tienda">
+    <nav class="container py-2 d-flex flex-wrap align-items-center gap-3">
+        <a class="marca" th:href="@{/}"><span class="sol" aria-hidden="true"></span>MiniMundo</a>
+        <form class="buscador flex-grow-1" th:action="@{/catalogo}" method="get" role="search">
+            <label class="visually-hidden" for="buscar">Buscar productos</label>
+            <input id="buscar" class="form-control" type="search" name="q" th:value="${param.q}" placeholder="Busca bodies, vestidos, pijamas…">
+        </form>
+        <ul class="nav nav-tienda align-items-center ms-auto">
+            <li class="nav-item"><a class="nav-link" th:classappend="${#strings.startsWith(ruta,'/catalogo')} ? 'activo'" th:href="@{/catalogo}">Catálogo</a></li>
+            <th:block sec:authorize="hasRole('CLIENTE')">
+                <li class="nav-item"><a class="nav-link" th:classappend="${#strings.startsWith(ruta,'/cuenta/pedidos')} ? 'activo'" th:href="@{/cuenta/pedidos}">Mis pedidos</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${#strings.startsWith(ruta,'/cuenta/pqrs') or #strings.startsWith(ruta,'/cuenta/solicitudes')} ? 'activo'" th:href="@{/cuenta/pqrs}">Ayuda</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/carrito}" aria-label="Carrito"><i class="bi bi-bag" aria-hidden="true"></i> Carrito</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false" th:text="${yo.primerNombre()}">Cuenta</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{/cuenta/perfil}">Mis datos y dirección</a></li>
+                        <li><a class="dropdown-item" th:href="@{/cuenta/solicitudes}">Cambios y devoluciones</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><form th:action="@{/logout}" method="post"><button class="dropdown-item" type="submit">Cerrar sesión</button></form></li>
+                    </ul>
+                </li>
+            </th:block>
+            <th:block sec:authorize="isAuthenticated() and !hasRole('CLIENTE')">
+                <li class="nav-item"><a class="btn btn-tinta btn-sm" th:href="@{${yo.inicio()}}">Ir a mi panel</a></li>
+            </th:block>
+            <th:block sec:authorize="!isAuthenticated()">
+                <li class="nav-item"><a class="nav-link" th:href="@{/login}">Ingresar</a></li>
+                <li class="nav-item"><a class="btn btn-primary btn-sm" th:href="@{/registro}">Crear cuenta</a></li>
+            </th:block>
+        </ul>
+    </nav>
+</header>
+<main id="contenido" class="container py-4">
+    <div th:replace="~{fragments/comunes :: avisos}"></div>
+    <th:block th:replace="${contenido}"></th:block>
+</main>
+<footer class="pie-tienda mt-5">
+    <div class="container py-4 d-flex flex-wrap justify-content-between gap-3">
+        <div>
+            <div class="marca fs-5 mb-1"><span class="sol" aria-hidden="true"></span>MiniMundo Boutique</div>
+            <div>Ropa, calzado y accesorios para bebés y niños de 0 a 12 años. Bucaramanga, Santander.</div>
+        </div>
+        <div class="text-md-end">
+            <div>Cambios y devoluciones hasta 30 días después de la entrega.</div>
+            <div>Pago simulado: no se realizan cobros reales.</div>
+        </div>
+    </div>
+</footer>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

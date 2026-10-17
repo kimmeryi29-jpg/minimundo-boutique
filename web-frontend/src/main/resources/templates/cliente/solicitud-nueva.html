@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Solicitud', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <a th:href="@{/cuenta/pedidos/{id}(id=${pedido.id})}">Volver al pedido <span th:text="${pedido.codigo}"></span></a>
+    <h1 class="my-2" th:text="${tipo == 'CAMBIO'} ? 'Cambiar de talla' : 'Devolver un producto'">Solicitud</h1>
+    <p class="texto-suave">Tienes <span th:text="${plazo}"></span> días desde la entrega para solicitarlo.</p>
+    <form class="hoja medida" th:action="@{/cuenta/pedidos/{id}/solicitud(id=${pedido.id})}" method="post">
+        <input type="hidden" name="sku" th:value="${item.sku}">
+        <input type="hidden" name="tipo" th:value="${tipo}">
+        <p class="fw-bold mb-1" th:text="${item.nombre}"></p>
+        <p class="texto-suave">Talla <span th:text="${item.talla}"></span>, color <span th:text="${item.color}"></span>. Compraste <span th:text="${item.cantidad}"></span>.</p>
+        <div class="mb-3" th:if="${item.cantidad > 1}">
+            <label class="form-label" for="cantidad">Cantidad</label>
+            <input class="form-control" id="cantidad" type="number" name="cantidad" min="1" th:max="${item.cantidad}" value="1" style="max-width: 8rem">
+        </div>
+        <fieldset class="mb-3" th:if="${tipo == 'CAMBIO'}">
+            <legend class="form-label">Talla que necesitas</legend>
+            <div class="selector" th:if="${!tallas.isEmpty()}">
+                <th:block th:each="t, st : ${tallas}">
+                    <input type="radio" name="tallaDeseada" th:id="'td' + ${st.index}" th:value="${t}" required>
+                    <label th:for="'td' + ${st.index}" th:text="${t}"></label>
+                </th:block>
+            </div>
+            <p class="texto-suave" th:if="${tallas.isEmpty()}">Este producto no tiene otras tallas. Puedes pedir una devolución.</p>
+        </fieldset>
+        <div class="mb-3">
+            <label class="form-label" for="motivo">Motivo</label>
+            <textarea class="form-control" id="motivo" name="motivo" rows="3" maxlength="500" th:text="${motivo}" required placeholder="Por ejemplo: le quedó pequeño"></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit" th:text="${tipo == 'CAMBIO'} ? 'Solicitar cambio' : 'Solicitar devolución'">Enviar</button>
+        <a class="btn btn-link" th:href="@{/cuenta/pedidos/{id}/solicitud(id=${pedido.id},sku=${item.sku},tipo=${tipo == 'CAMBIO' ? 'DEVOLUCION' : 'CAMBIO'})}" th:text="${tipo == 'CAMBIO'} ? 'Prefiero devolverlo' : 'Prefiero cambiar la talla'"></a>
+    </form>
+</div>
+</body>
+</html>

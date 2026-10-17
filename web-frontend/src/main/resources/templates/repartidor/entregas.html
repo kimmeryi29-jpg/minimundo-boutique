@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Mis entregas', ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="porSalir=${entregas.?[#this['estado'] == 'DESPACHADO']}, enRuta=${entregas.?[#this['estado'] == 'EN_RUTA']}">
+    <div class="panel-cabecera">
+        <div><h1>Mis entregas</h1><p class="texto-suave mb-0">Hoy, <span th:text="${@fmt.dia(@fmt.hoy())}"></span>.</p></div>
+        <a class="btn btn-outline-primary" th:href="@{/repartidor/historial}">Ver historial</a>
+    </div>
+    <div class="vacio hoja" th:if="${entregas.isEmpty()}"><i class="bi bi-bicycle"></i>No tienes entregas asignadas por ahora.</div>
+
+    <section th:unless="${enRuta.isEmpty()}">
+        <h2 class="h5 mb-3">En camino</h2>
+        <article class="entrega hoja" th:each="e : ${enRuta}">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                    <div class="fw-bold" th:text="${e.pedidoCodigo}"></div>
+                    <div th:text="${e.direccion.nombreRecibe}"></div>
+                </div>
+                <span th:replace="~{fragments/comunes :: estado(${e.estado})}"></span>
+            </div>
+            <p class="mt-2 mb-1"><i class="bi bi-geo-alt"></i> <span th:text="${e.direccion.direccion}"></span><th:block th:if="${e.direccion.barrio}">, <span th:text="${e.direccion.barrio}"></span></th:block>, <span th:text="${e.direccion.ciudad}"></span></p>
+            <p class="mb-1"><i class="bi bi-telephone"></i> <a th:href="'tel:' + ${e.direccion.telefono}" th:text="${e.direccion.telefono}"></a></p>
+            <p class="small texto-suave" th:if="${e.direccion.indicaciones}" th:text="${e.direccion.indicaciones}"></p>
+            <p class="small mb-3"><span th:text="${#aggregates.sum(e.items.![cantidad])}"></span> prendas</p>
+            <div class="d-flex flex-wrap gap-2">
+                <form th:action="@{/repartidor/entregas/{id}/entrega(id=${e.id})}" method="post" data-confirmar="¿Confirmas que entregaste el pedido?">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle"></i> Entregado</button>
+                </form>
+                <details class="flex-grow-1">
+                    <summary class="btn btn-outline-danger">No se pudo entregar</summary>
+                    <form class="mt-2" th:action="@{/repartidor/entregas/{id}/fallida(id=${e.id})}" method="post">
+                        <fieldset class="mb-2">
+                            <legend class="form-label fs-6">¿Qué pasó?</legend>
+                            <div class="form-check"><input class="form-check-input" type="radio" name="motivo" value="CLIENTE_AUSENTE" th:id="'m1-' + ${e.id}" required><label class="form-check-label" th:for="'m1-' + ${e.id}">No había nadie para recibir</label></div>
+                            <div class="form-check"><input class="form-check-input" type="radio" name="motivo" value="DIRECCION_ERRONEA" th:id="'m2-' + ${e.id}"><label class="form-check-label" th:for="'m2-' + ${e.id}">La dirección no existe o está incompleta</label></div>
+                            <div class="form-check"><input class="form-check-input" type="radio" name="motivo" value="OTRO" th:id="'m3-' + ${e.id}"><label class="form-check-label" th:for="'m3-' + ${e.id}">Otro motivo</label></div>
+                        </fieldset>
+                        <label class="form-label" th:for="'det-' + ${e.id}">Detalle</label>
+                        <textarea class="form-control mb-2" th:id="'det-' + ${e.id}" name="detalle" rows="2" maxlength="300" placeholder="Obligatorio si eliges otro motivo"></textarea>
+                        <button class="btn btn-danger" type="submit">Registrar novedad</button>
+                    </form>
+                </details>
+            </div>
+        </article>
+    </section>
+
+    <section th:unless="${porSalir.isEmpty()}">
+        <h2 class="h5 mb-3 mt-4">Por recoger</h2>
+        <article class="entrega hoja" th:each="e : ${porSalir}">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                    <div class="fw-bold" th:text="${e.pedidoCodigo}"></div>
+                    <div th:text="${e.direccion.nombreRecibe}"></div>
+                </div>
+                <span class="estado estado-rojo" th:if="${e.entregaFallida}">Reintento</span>
+            </div>
+            <p class="mt-2 mb-1"><i class="bi bi-geo-alt"></i> <span th:text="${e.direccion.direccion}"></span>, <span th:text="${e.direccion.ciudad}"></span></p>
+            <p class="small texto-suave mb-3" th:if="${e.entregaFallida}" th:text="'Intento anterior: ' + ${e.ultimoMotivoFallido}"></p>
+            <form th:action="@{/repartidor/entregas/{id}/en-ruta(id=${e.id})}" method="post">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-truck"></i> Salir a entregar</button>
+            </form>
+        </article>
+    </section>
+</div>
+</body>
+</html>

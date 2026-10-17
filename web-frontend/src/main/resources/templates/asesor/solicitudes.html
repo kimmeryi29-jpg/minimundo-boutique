@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Cambios y devoluciones', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera">
+        <h1>Cambios y devoluciones</h1>
+        <div class="btn-group" role="group" aria-label="Estado">
+            <a th:each="e : ${ {'PENDIENTE','APROBADA','RECHAZADA'} }" class="btn btn-sm" th:classappend="${estado == e} ? 'btn-primary' : 'btn-outline-primary'" th:href="@{/asesor/solicitudes(estado=${e})}" th:text="${@fmt.estado(e)} + 's'"></a>
+        </div>
+    </div>
+    <div class="hoja vacio" th:if="${solicitudes.isEmpty()}"><i class="bi bi-check2-circle"></i>No hay solicitudes en este estado.</div>
+    <div class="hoja" th:each="s : ${solicitudes}">
+        <div class="d-flex flex-wrap justify-content-between gap-2">
+            <div>
+                <h2 class="h5 mb-1"><span th:text="${s.numero}"></span>: <span th:text="${s.tipoTexto}"></span></h2>
+                <div class="texto-suave"><span th:text="${s.clienteNombre}"></span>, pedido <span th:text="${s.pedidoCodigo}"></span>, solicitado el <span th:text="${@fmt.fecha(s.fechaSolicitud)}"></span></div>
+            </div>
+            <span th:replace="~{fragments/comunes :: estado(${s.estado})}"></span>
+        </div>
+        <p class="mt-2 mb-1"><strong th:text="${s.cantidad} + ' × ' + ${s.nombreProducto}"></strong>, talla <span th:text="${s.talla}"></span>, color <span th:text="${s.color}"></span><th:block th:if="${s.tallaDeseada}">. Pide talla <strong th:text="${s.tallaDeseada}"></strong></th:block>.</p>
+        <p class="mb-2"><span class="texto-suave">Motivo:</span> <span th:text="${s.motivo}"></span></p>
+        <p class="mb-0" th:if="${s.estado == 'RECHAZADA'}"><span class="texto-suave">Rechazada:</span> <span th:text="${s.motivoRechazo}"></span></p>
+        <div class="d-flex flex-wrap gap-2 align-items-start" th:if="${s.estado == 'PENDIENTE'}">
+            <form th:action="@{/asesor/solicitudes/{id}/decision(id=${s.id})}" method="post">
+                <input type="hidden" name="aprobar" value="true">
+                <button class="btn btn-primary" type="submit">Aprobar</button>
+            </form>
+            <form class="d-flex gap-2 flex-grow-1" th:action="@{/asesor/solicitudes/{id}/decision(id=${s.id})}" method="post">
+                <input type="hidden" name="aprobar" value="false">
+                <label class="visually-hidden" th:for="'motivo-' + ${s.id}">Motivo del rechazo</label>
+                <input class="form-control" th:id="'motivo-' + ${s.id}" name="motivo" placeholder="Motivo del rechazo" required>
+                <button class="btn btn-outline-danger" type="submit">Rechazar</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

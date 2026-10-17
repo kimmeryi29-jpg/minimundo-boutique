@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Catálogo', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <section class="regla mb-4" aria-label="Filtrar por edad">
+        <div class="regla-marcas">
+            <a class="regla-tramo" th:each="r : ${opciones.rangosEdad}" th:classappend="${filtros.edad == r.valor} ? 'activo'"
+               th:href="@{/catalogo(edad=${filtros.edad == r.valor ? null : r.valor},q=${filtros.q},categoria=${filtros.categoria},genero=${filtros.genero},talla=${filtros.talla},coleccion=${filtros.coleccion},precioMax=${filtros.precioMax},orden=${filtros.orden})}">
+                <strong th:text="${#strings.replace(#strings.replace(r.texto,' meses',''),' años','')}">0 a 12</strong>
+                <span th:text="${#strings.contains(r.texto,'meses')} ? 'meses' : 'años'">años</span>
+            </a>
+        </div>
+    </section>
+
+    <div class="row g-4">
+        <aside class="col-lg-3">
+            <form class="hoja" th:action="@{/catalogo}" method="get" aria-label="Filtros del catálogo">
+                <h2 class="h5">Filtrar</h2>
+                <input type="hidden" name="q" th:value="${filtros.q}">
+                <input type="hidden" name="edad" th:value="${filtros.edad}">
+                <div class="mb-3">
+                    <label class="form-label" for="f-categoria">Categoría</label>
+                    <select id="f-categoria" class="form-select" name="categoria">
+                        <option value="">Todas</option>
+                        <option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.nombre}" th:selected="${filtros.categoria == c.id}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="f-coleccion">Colección</label>
+                    <select id="f-coleccion" class="form-select" name="coleccion">
+                        <option value="">Todas</option>
+                        <option th:each="c : ${colecciones}" th:value="${c.id}" th:text="${c.nombre}" th:selected="${filtros.coleccion == c.id}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="f-genero">Para</label>
+                    <select id="f-genero" class="form-select" name="genero">
+                        <option value="">Niña, niño o unisex</option>
+                        <option th:each="g : ${opciones.generos}" th:value="${g.valor}" th:text="${g.texto}" th:selected="${filtros.genero == g.valor}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="f-talla">Talla</label>
+                    <select id="f-talla" class="form-select" name="talla">
+                        <option value="">Cualquier talla</option>
+                        <option th:each="t : ${opciones.tallasSugeridas}" th:value="${t}" th:text="${t}" th:selected="${filtros.talla == t}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="f-precio">Precio máximo</label>
+                    <select id="f-precio" class="form-select" name="precioMax">
+                        <option value="">Sin límite</option>
+                        <option th:each="v : ${ {30000, 50000, 80000, 100000, 150000} }" th:value="${v}" th:text="${@fmt.pesos(v)}" th:selected="${filtros.precioMax == v}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="f-orden">Ordenar por</label>
+                    <select id="f-orden" class="form-select" name="orden">
+                        <option value="">Más recientes</option>
+                        <option value="precio_asc" th:selected="${filtros.orden == 'precio_asc'}">Menor precio</option>
+                        <option value="precio_desc" th:selected="${filtros.orden == 'precio_desc'}">Mayor precio</option>
+                        <option value="nombre" th:selected="${filtros.orden == 'nombre'}">Nombre</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary w-100" type="submit">Aplicar filtros</button>
+                <a th:if="${hayFiltros}" class="btn btn-link w-100 mt-1" th:href="@{/catalogo}">Limpiar filtros</a>
+            </form>
+        </aside>
+
+        <section class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-baseline mb-3">
+                <h1 class="h2 mb-0" th:text="${filtros.q != null and !#strings.isEmpty(filtros.q)} ? 'Resultados para «' + ${filtros.q} + '»' : 'Catálogo'">Catálogo</h1>
+                <span class="texto-suave" th:text="${#lists.size(productos)} + (${#lists.size(productos)} == 1 ? ' producto' : ' productos')"></span>
+            </div>
+            <div class="row g-3" th:if="${!productos.isEmpty()}">
+                <div class="col-6 col-md-4" th:each="p : ${productos}"><a th:replace="~{fragments/comunes :: prenda(${p})}"></a></div>
+            </div>
+            <div class="hoja vacio" th:if="${productos.isEmpty()}">
+                <i class="bi bi-search"></i>
+                <p class="mb-2" th:text="${filtros.q != null and !#strings.isEmpty(filtros.q)} ? 'No encontramos productos con ese nombre.' : 'No hay productos con esos filtros.'"></p>
+                <a class="btn btn-outline-primary" th:href="@{/catalogo}">Ver el catálogo completo</a>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Auditoría de accesos', ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="tipos=${ {'LOGIN_EXITOSO':'Inicio de sesión','LOGIN_FALLIDO':'Intento fallido','CUENTA_BLOQUEADA':'Cuenta bloqueada','CAMBIO_ROL':'Cambio de rol','USUARIO_CREADO':'Usuario creado','USUARIO_DESACTIVADO':'Usuario desactivado','USUARIO_ACTIVADO':'Usuario activado','RECUPERACION_SOLICITADA':'Recuperación solicitada','CONTRASENA_RESTABLECIDA':'Contraseña restablecida'} }">
+    <div class="panel-cabecera"><div><h1>Auditoría de accesos</h1><p class="texto-suave mb-0">Inicios de sesión, bloqueos y cambios de cuentas.</p></div></div>
+    <form class="hoja row g-2 align-items-end" method="get" th:action="@{/admin/auditoria}">
+        <div class="col-md-2"><label class="form-label" for="desde">Desde</label><input class="form-control" type="date" id="desde" name="desde" th:value="${desde}"></div>
+        <div class="col-md-2"><label class="form-label" for="hasta">Hasta</label><input class="form-control" type="date" id="hasta" name="hasta" th:value="${hasta}"></div>
+        <div class="col-md-3"><label class="form-label" for="usuario">Correo</label><input class="form-control" id="usuario" name="usuario" th:value="${usuario}"></div>
+        <div class="col-md-3">
+            <label class="form-label" for="tipo">Evento</label>
+            <select class="form-select" id="tipo" name="tipo">
+                <option value="">Todos</option>
+                <option th:each="t : ${tipos}" th:value="${t.key}" th:text="${t.value}" th:selected="${t.key == tipo}"></option>
+            </select>
+        </div>
+        <div class="col-md-2"><button class="btn btn-outline-primary w-100" type="submit">Filtrar</button></div>
+    </form>
+    <section class="hoja">
+        <div class="vacio" th:if="${eventos.isEmpty()}">No hay eventos con esos filtros.</div>
+        <table class="table tabla" th:unless="${eventos.isEmpty()}">
+            <thead><tr><th>Fecha</th><th>Evento</th><th>Correo</th><th>Resultado</th><th>Detalle</th><th>Hecho por</th></tr></thead>
+            <tbody>
+            <tr th:each="ev : ${eventos}" th:classappend="${ev.tipo == 'CUENTA_BLOQUEADA' or ev.tipo == 'LOGIN_FALLIDO'} ? 'resaltada'">
+                <td class="text-nowrap" th:text="${@fmt.fechaHora(ev.fecha)}"></td>
+                <td th:text="${tipos[ev.tipo] != null} ? ${tipos[ev.tipo]} : ${ev.tipo}"></td>
+                <td th:text="${ev.email}"></td>
+                <td th:text="${ev.resultado}"></td>
+                <td th:text="${ev.detalle}"></td>
+                <td th:text="${ev.actor}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

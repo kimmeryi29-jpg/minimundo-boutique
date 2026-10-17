@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('SKU ' + ${sku}, ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <a th:href="@{/operario/inventario}">Volver al inventario</a>
+    <div class="panel-cabecera mt-2">
+        <div>
+            <h1 class="font-monospace" th:text="${sku}"></h1>
+            <div class="texto-suave" th:if="${item != null}"><span th:text="${item.productoNombre}"></span>, talla <span th:text="${item.talla}"></span>, <span th:text="${item.color}"></span></div>
+        </div>
+    </div>
+    <div class="vacio hoja" th:if="${item == null}">Este SKU no tiene inventario registrado.</div>
+    <th:block th:if="${item != null}">
+        <div class="row g-3 mb-1">
+            <div class="col-6 col-md-3"><div class="indicador"><div class="nombre">Stock</div><div class="valor" th:text="${item.stock}"></div></div></div>
+            <div class="col-6 col-md-3"><div class="indicador"><div class="nombre">Reservado</div><div class="valor" th:text="${item.reservado}"></div></div></div>
+            <div class="col-6 col-md-3"><div class="indicador"><div class="nombre">Disponible</div><div class="valor" th:text="${item.disponible}"></div></div></div>
+            <div class="col-6 col-md-3"><div class="indicador"><div class="nombre">Mínimo</div><div class="valor" th:text="${item.stockMinimo}"></div><div class="small texto-suave" th:text="${item.minimoPropio} ? 'propio del SKU' : 'valor general'"></div></div></div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <form class="hoja" method="post" th:action="@{/operario/inventario/entrada}">
+                    <h2 class="h6">Entrada</h2>
+                    <input type="hidden" name="sku" th:value="${sku}"><input type="hidden" name="volver" value="movimientos">
+                    <input class="form-control mb-2" name="cantidad" type="number" min="1" required aria-label="Unidades" placeholder="Unidades">
+                    <input class="form-control mb-2" name="motivo" aria-label="Nota" placeholder="Nota">
+                    <button class="btn btn-sm btn-primary" type="submit">Registrar entrada</button>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <form class="hoja" method="post" th:action="@{/operario/inventario/ajuste}">
+                    <h2 class="h6">Ajuste</h2>
+                    <input type="hidden" name="sku" th:value="${sku}"><input type="hidden" name="volver" value="movimientos">
+                    <input class="form-control mb-2" name="cantidad" type="number" required aria-label="Unidades a sumar o restar" placeholder="Ej. -1">
+                    <input class="form-control mb-2" name="motivo" required aria-label="Motivo" placeholder="Motivo">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Registrar ajuste</button>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <form class="hoja" method="post" th:action="@{/operario/inventario/{s}/minimo(s=${sku})}">
+                    <h2 class="h6">Stock mínimo de este SKU</h2>
+                    <input class="form-control mb-2" name="stockMinimo" type="number" min="0" aria-label="Stock mínimo" th:value="${item.minimoPropio} ? ${item.stockMinimo} : ''" placeholder="Vacío usa el valor general">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Guardar mínimo</button>
+                </form>
+            </div>
+        </div>
+    </th:block>
+
+    <form class="hoja row g-2 align-items-end" method="get" th:action="@{/operario/inventario/{s}(s=${sku})}">
+        <div class="col-md-3">
+            <label class="form-label" for="tipo">Tipo</label>
+            <select class="form-select" id="tipo" name="tipo">
+                <option value="">Todos</option>
+                <option th:each="t : ${ {'ENTRADA','SALIDA','AJUSTE'} }" th:value="${t}" th:text="${@fmt.estado(t)}" th:selected="${t == tipo}"></option>
+            </select>
+        </div>
+        <div class="col-md-3"><label class="form-label" for="desde">Desde</label><input class="form-control" type="date" id="desde" name="desde" th:value="${desde}"></div>
+        <div class="col-md-3"><label class="form-label" for="hasta">Hasta</label><input class="form-control" type="date" id="hasta" name="hasta" th:value="${hasta}"></div>
+        <div class="col-md-3"><button class="btn btn-outline-primary w-100" type="submit">Filtrar</button></div>
+    </form>
+    <section class="hoja">
+        <h2 class="h5">Movimientos</h2>
+        <div class="vacio" th:if="${movimientos.isEmpty()}">No hay movimientos en ese rango.</div>
+        <table class="table tabla" th:unless="${movimientos.isEmpty()}">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th class="text-end">Cantidad</th><th class="text-end">Stock después</th><th>Motivo</th><th>Referencia</th><th>Usuario</th></tr></thead>
+            <tbody>
+            <tr th:each="m : ${movimientos}">
+                <td th:text="${@fmt.fechaHora(m.fecha)}"></td>
+                <td><span th:replace="~{fragments/comunes :: estado(${m.tipo})}"></span></td>
+                <td class="text-end" th:text="${m.cantidad > 0 and m.tipo != 'SALIDA'} ? '+' + ${m.cantidad} : ${m.cantidad}"></td>
+                <td class="text-end" th:text="${m.stockResultante}"></td>
+                <td th:text="${m.motivo}"></td>
+                <td th:text="${m.referencia}"></td>
+                <td th:text="${m.usuarioNombre}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

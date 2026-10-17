@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Mis datos', ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="d=${perfil.direccion != null ? perfil.direccion : {:}}, f=${form != null ? form : {:}}">
+    <h1 class="mb-3">Mis datos y dirección</h1>
+    <form class="hoja medida" th:action="@{/cuenta/perfil}" method="post" novalidate>
+        <h2 class="h4">Datos personales</h2>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label" for="nombre">Nombre completo</label>
+                <input class="form-control" id="nombre" name="nombre" th:value="${f['nombre'] != null ? f['nombre'] : perfil.nombre}" th:classappend="${campos != null and campos['nombre'] != null} ? 'is-invalid'" required>
+                <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['nombre']}"></div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="email">Correo</label>
+                <input class="form-control" id="email" th:value="${perfil.email}" disabled>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="telefono">Teléfono</label>
+                <input class="form-control" id="telefono" name="telefono" th:value="${f['telefono'] != null ? f['telefono'] : perfil.telefono}">
+            </div>
+        </div>
+        <h2 class="h4 mt-4">Dirección de envío</h2>
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label" for="direccion">Dirección</label>
+                <input class="form-control" id="direccion" name="direccion" th:value="${f['direccion'] != null ? f['direccion'] : d['direccion']}" th:classappend="${campos != null and campos['direccion.direccion'] != null} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['direccion.direccion']}"></div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="barrio">Barrio</label>
+                <input class="form-control" id="barrio" name="barrio" th:value="${f['barrio'] != null ? f['barrio'] : d['barrio']}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="ciudad">Ciudad</label>
+                <input class="form-control" id="ciudad" name="ciudad" list="ciudades" th:value="${f['ciudad'] != null ? f['ciudad'] : d['ciudad']}" th:classappend="${campos != null and campos['direccion.ciudad'] != null} ? 'is-invalid'">
+                <datalist id="ciudades"><option th:each="t : ${tarifas}" th:value="${t.ciudad}"></option></datalist>
+                <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['direccion.ciudad']}"></div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="telefonoEntrega">Teléfono de contacto para la entrega</label>
+                <input class="form-control" id="telefonoEntrega" name="telefonoEntrega" th:value="${f['telefonoEntrega'] != null ? f['telefonoEntrega'] : d['telefono']}" th:classappend="${campos != null and campos['direccion.telefono'] != null} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['direccion.telefono']}"></div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="indicaciones">Indicaciones</label>
+                <input class="form-control" id="indicaciones" name="indicaciones" th:value="${f['indicaciones'] != null ? f['indicaciones'] : d['indicaciones']}">
+            </div>
+        </div>
+        <button class="btn btn-primary mt-4" type="submit">Guardar cambios</button>
+    </form>
+</div>
+</body>
+</html>

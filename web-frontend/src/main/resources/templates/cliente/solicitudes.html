@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Cambios y devoluciones', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <h1 class="mb-1">Cambios y devoluciones</h1>
+    <p class="texto-suave">Para pedir un cambio de talla o una devolución, abre el pedido entregado en <a th:href="@{/cuenta/pedidos}">Mis pedidos</a>.</p>
+    <div class="hoja vacio" th:if="${solicitudes.isEmpty()}"><i class="bi bi-arrow-left-right"></i>No tienes solicitudes.</div>
+    <div class="hoja" th:unless="${solicitudes.isEmpty()}">
+        <table class="table tabla">
+            <thead><tr><th>Número</th><th>Tipo</th><th>Producto</th><th>Pedido</th><th>Estado</th></tr></thead>
+            <tbody>
+            <th:block th:each="s : ${solicitudes}">
+                <tr>
+                    <td class="fw-bold" th:text="${s.numero}"></td>
+                    <td th:text="${s.tipoTexto}"></td>
+                    <td><span th:text="${s.nombreProducto}"></span> <span class="texto-suave small">talla <span th:text="${s.talla}"></span><th:block th:if="${s.tallaDeseada}"> → <span th:text="${s.tallaDeseada}"></span></th:block></span></td>
+                    <td th:text="${s.pedidoCodigo}"></td>
+                    <td><span th:replace="~{fragments/comunes :: estado(${s.estado})}"></span></td>
+                </tr>
+                <tr th:if="${s.estado == 'RECHAZADA'}">
+                    <td colspan="5" class="small"><strong>Motivo del rechazo:</strong> <span th:text="${s.motivoRechazo}"></span> <span class="texto-suave">(decidido el <span th:text="${@fmt.fecha(s.fechaDecision)}"></span>)</span></td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

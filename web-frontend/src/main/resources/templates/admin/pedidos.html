@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Pedidos', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera"><h1>Pedidos</h1></div>
+    <form class="hoja row g-2 align-items-end" method="get" th:action="@{/admin/pedidos}">
+        <div class="col-md-5"><label class="form-label" for="codigo">Código</label><input class="form-control" id="codigo" name="codigo" th:value="${codigo}" placeholder="MM-261016-AB12C"></div>
+        <div class="col-md-4">
+            <label class="form-label" for="estado">Estado</label>
+            <select class="form-select" id="estado" name="estado">
+                <option value="">Todos</option>
+                <option th:each="s : ${ {'CREADO','PAGADO','EN_ALISTAMIENTO','DESPACHADO','EN_RUTA','ENTREGADO','CANCELADO'} }" th:value="${s}" th:text="${@fmt.estado(s)}" th:selected="${s == estado}"></option>
+            </select>
+        </div>
+        <div class="col-md-3"><button class="btn btn-outline-primary w-100" type="submit">Buscar</button></div>
+    </form>
+    <section class="hoja">
+        <div class="vacio" th:if="${pedidos.isEmpty()}"><i class="bi bi-receipt"></i>No hay pedidos con esos filtros.</div>
+        <table class="table tabla" th:unless="${pedidos.isEmpty()}">
+            <thead><tr><th>Pedido</th><th>Creado</th><th>Cliente</th><th>Ciudad</th><th class="text-end">Total</th><th>Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="p : ${pedidos}">
+                <td class="fw-bold"><a th:href="@{/admin/pedidos/{id}(id=${p.id})}" th:text="${p.codigo}"></a></td>
+                <td th:text="${@fmt.fechaHora(p.fechaCreacion)}"></td>
+                <td th:text="${p.clienteNombre}"></td>
+                <td th:text="${p.direccionEnvio != null} ? ${p.direccionEnvio.ciudad} : ''"></td>
+                <td class="text-end" th:text="${@fmt.pesos(p.total)}"></td>
+                <td><span th:replace="~{fragments/comunes :: estado(${p.estado})}"></span></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Pedido ' + ${e.pedidoCodigo}, ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <a th:href="${e.estado == 'EN_ALISTAMIENTO'} ? @{/operario/alistamiento} : @{/operario/despachos}">Volver</a>
+    <div class="panel-cabecera mt-2">
+        <div>
+            <h1>Pedido <span th:text="${e.pedidoCodigo}"></span></h1>
+            <div class="texto-suave">Pagado el <span th:text="${@fmt.fechaHora(e.fechaPago)}"></span>. Lo tomó <span th:text="${e.operarioNombre}"></span>.</div>
+        </div>
+        <span th:replace="~{fragments/comunes :: estado(${e.estado})}"></span>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <section class="hoja">
+                <h2 class="h5">1. Verifica cada prenda</h2>
+                <p class="texto-suave" th:if="${e.estado == 'EN_ALISTAMIENTO'}">Escanea o escribe el SKU de la etiqueta y la cantidad que tienes en la mano.</p>
+                <table class="table tabla">
+                    <thead><tr><th>SKU</th><th>Prenda</th><th>Cantidad</th><th>Verificación</th></tr></thead>
+                    <tbody>
+                    <tr th:each="i : ${e.items}">
+                        <td class="font-monospace" th:text="${i.sku}"></td>
+                        <td><span th:text="${i.nombre}"></span><div class="small texto-suave">Talla <span th:text="${i.talla}"></span>, <span th:text="${i.color}"></span></div></td>
+                        <td th:text="${i.cantidad}"></td>
+                        <td>
+                            <span class="estado estado-verde" th:if="${i.verificado}"><i class="bi bi-check2"></i> Verificado</span>
+                            <form class="d-flex gap-1" th:if="${!i.verificado and e.estado == 'EN_ALISTAMIENTO'}" th:action="@{/operario/envios/{id}/verificar(id=${e.id})}" method="post">
+                                <label class="visually-hidden" th:for="'sku-' + ${i.sku}">SKU</label>
+                                <input class="form-control form-control-sm" th:id="'sku-' + ${i.sku}" name="sku" placeholder="SKU" style="width: 11rem" required>
+                                <label class="visually-hidden" th:for="'cant-' + ${i.sku}">Cantidad</label>
+                                <input class="form-control form-control-sm" th:id="'cant-' + ${i.sku}" name="cantidad" type="number" min="1" placeholder="Cant." style="width: 5rem" required>
+                                <button class="btn btn-sm btn-outline-primary" type="submit">Verificar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <form th:if="${e.estado == 'EN_ALISTAMIENTO' and !e.alistamientoConfirmado}" th:action="@{/operario/envios/{id}/confirmar(id=${e.id})}" method="post">
+                    <button class="btn btn-primary" type="submit">Confirmar alistamiento</button>
+                </form>
+                <p class="aviso aviso-ok mb-0" th:if="${e.alistamientoConfirmado}">Alistamiento confirmado el <span th:text="${@fmt.fechaHora(e.fechaAlistamiento)}"></span>.</p>
+            </section>
+
+            <section class="hoja" th:if="${e.estado == 'EN_ALISTAMIENTO'}">
+                <h2 class="h5">2. Registra el despacho</h2>
+                <form class="row g-2 align-items-end" th:action="@{/operario/envios/{id}/despacho(id=${e.id})}" method="post">
+                    <div class="col-md-5">
+                        <label class="form-label" for="transportadora">Transportadora</label>
+                        <input class="form-control" id="transportadora" name="transportadora" list="transportadoras" required th:disabled="${!e.alistamientoConfirmado}">
+                        <datalist id="transportadoras"><option value="Reparto propio MiniMundo"><option value="Servientrega"><option value="Coordinadora"><option value="Interrapidísimo"></datalist>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="guia">Número de guía</label>
+                        <input class="form-control" id="guia" name="guia" required th:disabled="${!e.alistamientoConfirmado}">
+                    </div>
+                    <div class="col-md-3"><button class="btn btn-primary w-100" type="submit" th:disabled="${!e.alistamientoConfirmado}">Despachar</button></div>
+                </form>
+                <p class="small texto-suave mt-2 mb-0" th:unless="${e.alistamientoConfirmado}">Primero verifica todas las prendas y confirma el alistamiento.</p>
+            </section>
+
+            <section class="hoja" th:if="${e.estado != 'EN_ALISTAMIENTO' and e.estado != 'CANCELADO'}">
+                <h2 class="h5">Despacho</h2>
+                <p class="mb-0"><span th:text="${e.transportadora}"></span>, guía <strong th:text="${e.guia}"></strong>, el <span th:text="${@fmt.fechaHora(e.fechaDespacho)}"></span>.</p>
+            </section>
+
+            <section class="hoja" th:if="${e.estado == 'DESPACHADO'}">
+                <h2 class="h5">3. Asigna un repartidor</h2>
+                <p class="aviso aviso-error" th:if="${e.entregaFallida}">Entrega fallida: <span th:text="${e.ultimoMotivoFallido}"></span>. Reasigna o reprograma la entrega.</p>
+                <p th:if="${e.repartidorNombre != null and !e.entregaFallida}">Asignado a <strong th:text="${e.repartidorNombre}"></strong>. Puedes cambiarlo si lo necesitas.</p>
+                <form class="d-flex gap-2" th:action="@{/operario/envios/{id}/repartidor(id=${e.id})}" method="post">
+                    <label class="visually-hidden" for="repartidorId">Repartidor</label>
+                    <select class="form-select" id="repartidorId" name="repartidorId" required>
+                        <option value="">Elige un repartidor activo</option>
+                        <option th:each="r : ${repartidores}" th:value="${r.id}" th:text="${r.nombre}" th:selected="${r.id == e.repartidorId}"></option>
+                    </select>
+                    <button class="btn btn-primary" type="submit">Asignar</button>
+                </form>
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="hoja">
+                <h2 class="h5">Entregar a</h2>
+                <p class="mb-1 fw-bold" th:text="${e.direccion.nombreRecibe}"></p>
+                <p class="mb-1" th:text="${e.direccion.direccion}"></p>
+                <p class="mb-1"><span th:text="${e.direccion.barrio}"></span> <span th:text="${e.direccion.ciudad}"></span></p>
+                <p class="mb-1" th:text="${e.direccion.telefono}"></p>
+                <p class="small texto-suave mb-0" th:text="${e.direccion.indicaciones}"></p>
+            </section>
+            <section class="hoja" th:if="${!e.eventos.isEmpty()}">
+                <h2 class="h5">Reparto</h2>
+                <ul class="historial">
+                    <li th:each="ev : ${e.eventos}" th:with="etiquetas=${ {'ASIGNADO':'Asignado','EN_RUTA':'Salió a reparto','ENTREGADO':'Entregado','FALLIDO':'Entrega fallida'} }">
+                        <strong th:text="${etiquetas[ev.tipo]}"></strong>, <span th:text="${ev.usuarioNombre}"></span>
+                        <br><small th:text="${@fmt.fechaHora(ev.fecha)}"></small>
+                        <div class="small" th:if="${ev.detalle != null}" th:text="${ev.detalle}"></div>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </div>
+</div>
+</body>
+</html>

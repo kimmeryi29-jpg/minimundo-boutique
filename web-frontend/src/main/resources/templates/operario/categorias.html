@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Categorías y colecciones', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera"><div><h1>Categorías y colecciones</h1><p class="texto-suave mb-0">Organizan el catálogo por tipo de prenda, edad y temporada.</p></div></div>
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <form class="hoja" method="post" th:action="@{/operario/categorias}">
+                <h2 class="h5">Crear</h2>
+                <div class="mb-2">
+                    <label class="form-label" for="nombre-nueva">Nombre</label>
+                    <input class="form-control" id="nombre-nueva" name="nombre" maxlength="60" required>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="tipo-nueva">Tipo</label>
+                    <select class="form-select" id="tipo-nueva" name="tipo" required>
+                        <option th:each="o : ${opciones.tiposCategoria}" th:value="${o.valor}" th:text="${o.texto}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="descripcion-nueva">Descripción</label>
+                    <textarea class="form-control" id="descripcion-nueva" name="descripcion" rows="2" maxlength="300"></textarea>
+                </div>
+                <button class="btn btn-primary" type="submit">Crear</button>
+            </form>
+        </div>
+        <div class="col-lg-8">
+            <section class="hoja" th:each="o : ${opciones.tiposCategoria}" th:with="grupo=${categorias.?[#this['tipo'] == '__${o.valor}__']}">
+                <h2 class="h5" th:text="${o.texto}"></h2>
+                <div class="vacio" th:if="${grupo.isEmpty()}">Todavía no hay ninguna.</div>
+                <table class="table tabla align-middle" th:unless="${grupo.isEmpty()}">
+                    <thead><tr><th>Nombre</th><th>Productos</th><th>Descuento</th><th></th></tr></thead>
+                    <tbody>
+                    <th:block th:each="cat : ${grupo}">
+                    <tr>
+                        <td><strong th:text="${cat.nombre}"></strong><div class="small texto-suave" th:text="${cat.descripcion}"></div></td>
+                        <td th:text="${cat.productos}"></td>
+                        <td>
+                            <span th:if="${cat.descuento == null}" class="texto-suave">Sin descuento</span>
+                            <span th:if="${cat.descuento != null}">
+                                <strong th:text="${cat.descuento.porcentaje} + '%'"></strong>
+                                <span class="small" th:text="'hasta el ' + ${@fmt.dia(cat.descuento.fin)}"></span>
+                                <span class="small texto-suave" th:unless="${cat.descuento.vigente}">(no vigente)</span>
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <details class="d-inline-block text-start">
+                                <summary class="btn btn-sm btn-outline-primary">Gestionar</summary>
+                                <div class="p-3 mt-2 border rounded bg-white" style="min-width: 300px">
+                                    <form class="mb-3" method="post" th:action="@{/operario/categorias/{id}(id=${cat.id})}">
+                                        <label class="form-label small" th:for="'n-' + ${cat.id}">Nombre</label>
+                                        <input class="form-control form-control-sm mb-2" th:id="'n-' + ${cat.id}" name="nombre" th:value="${cat.nombre}" required>
+                                        <input type="hidden" name="tipo" th:value="${cat.tipo}">
+                                        <label class="form-label small" th:for="'d-' + ${cat.id}">Descripción</label>
+                                        <textarea class="form-control form-control-sm mb-2" th:id="'d-' + ${cat.id}" name="descripcion" rows="2" th:text="${cat.descripcion}"></textarea>
+                                        <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
+                                    </form>
+                                    <form class="mb-3" method="post" th:action="@{/operario/categorias/{id}/descuento(id=${cat.id})}">
+                                        <span class="form-label small d-block">Descuento para toda la categoría</span>
+                                        <div class="d-flex gap-1 mb-2">
+                                            <input class="form-control form-control-sm" name="porcentaje" type="number" min="1" max="100" placeholder="%" aria-label="Porcentaje" required style="width: 5rem">
+                                            <input class="form-control form-control-sm" name="inicio" type="date" aria-label="Desde" required th:value="${@fmt.hoy()}">
+                                            <input class="form-control form-control-sm" name="fin" type="date" aria-label="Hasta" required>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">Aplicar descuento</button>
+                                    </form>
+                                    <form class="mb-2" th:if="${cat.descuento != null}" method="post" th:action="@{/operario/categorias/{id}/descuento/quitar(id=${cat.id})}">
+                                        <button class="btn btn-sm btn-link p-0" type="submit">Retirar descuento</button>
+                                    </form>
+                                    <form method="post" th:action="@{/operario/categorias/{id}/eliminar(id=${cat.id})}" data-confirmar="¿Eliminar esta categoría? Solo se puede si no tiene productos.">
+                                        <button class="btn btn-sm btn-link text-danger p-0" type="submit">Eliminar</button>
+                                    </form>
+                                </div>
+                            </details>
+                        </td>
+                    </tr>
+                    </th:block>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+</div>
+</body>
+</html>

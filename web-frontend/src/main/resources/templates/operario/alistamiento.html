@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Alistamiento', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera">
+        <div><h1>Alistamiento</h1><p class="texto-suave mb-0">Los pedidos pagados se atienden en orden de llegada.</p></div>
+    </div>
+    <section class="hoja" th:if="${!enAlistamiento.isEmpty()}">
+        <h2 class="h5">En alistamiento</h2>
+        <table class="table tabla">
+            <thead><tr><th>Pedido</th><th>Cliente</th><th>Operario</th><th>Prendas verificadas</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${enAlistamiento}">
+                <td class="fw-bold" th:text="${e.pedidoCodigo}"></td>
+                <td th:text="${e.clienteNombre}"></td>
+                <td th:text="${e.operarioNombre}"></td>
+                <td th:text="${#lists.size(e.items.?[verificado])} + ' de ' + ${#lists.size(e.items)}"></td>
+                <td class="text-end"><a class="btn btn-sm btn-primary" th:href="@{/operario/envios/{id}(id=${e.id})}" th:text="${e.alistamientoConfirmado} ? 'Registrar despacho' : 'Continuar'"></a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+    <section class="hoja">
+        <h2 class="h5">Pedidos pagados por alistar</h2>
+        <div class="vacio" th:if="${cola.isEmpty()}"><i class="bi bi-cup-hot"></i>No hay pedidos por alistar.</div>
+        <table class="table tabla" th:unless="${cola.isEmpty()}">
+            <thead><tr><th>Orden</th><th>Pedido</th><th>Pagado</th><th>Cliente</th><th>Ciudad</th><th>Prendas</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="p, st : ${cola}">
+                <td th:text="${st.count}"></td>
+                <td class="fw-bold" th:text="${p.codigo}"></td>
+                <td th:text="${@fmt.fechaHora(p.fechaPago)}"></td>
+                <td th:text="${p.clienteNombre}"></td>
+                <td th:text="${p.direccionEnvio.ciudad}"></td>
+                <td th:text="${p.unidades}"></td>
+                <td class="text-end">
+                    <form th:action="@{/operario/alistamiento/tomar}" method="post">
+                        <input type="hidden" name="pedidoId" th:value="${p.id}">
+                        <button class="btn btn-sm btn-primary" type="submit">Tomar pedido</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

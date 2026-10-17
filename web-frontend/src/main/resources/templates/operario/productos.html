@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Productos', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera">
+        <div><h1>Productos</h1><p class="texto-suave mb-0">Crea prendas, carga sus fotos y decide cuándo se ven en la tienda.</p></div>
+        <a class="btn btn-primary" th:href="@{/operario/productos/nuevo}"><i class="bi bi-plus-lg"></i> Nuevo producto</a>
+    </div>
+    <form class="hoja row g-2 align-items-end" method="get" th:action="@{/operario/productos}">
+        <div class="col-md-6">
+            <label class="form-label" for="q">Buscar</label>
+            <input class="form-control" id="q" name="q" th:value="${q}" placeholder="Nombre, código o SKU">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="estado">Estado</label>
+            <select class="form-select" id="estado" name="estado">
+                <option value="">Todos</option>
+                <option value="PUBLICADO" th:selected="${estado == 'PUBLICADO'}">Publicados</option>
+                <option value="BORRADOR" th:selected="${estado == 'BORRADOR'}">Borradores</option>
+                <option value="INACTIVO" th:selected="${estado == 'INACTIVO'}">Desactivados</option>
+            </select>
+        </div>
+        <div class="col-md-3"><button class="btn btn-outline-primary w-100" type="submit">Filtrar</button></div>
+    </form>
+    <section class="hoja">
+        <div class="vacio" th:if="${productos.isEmpty()}"><i class="bi bi-search"></i>No hay productos con esos filtros.</div>
+        <table class="table tabla align-middle" th:unless="${productos.isEmpty()}">
+            <thead><tr><th></th><th>Código</th><th>Producto</th><th>Categoría</th><th>Precio</th><th>Variantes</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="p : ${productos}">
+                <td style="width: 56px"><th:block th:replace="~{fragments/comunes :: foto(${p.imagen}, '', 'foto-miniatura')}"></th:block></td>
+                <td class="font-monospace" th:text="${p.codigo}"></td>
+                <td th:text="${p.nombre}"></td>
+                <td th:text="${p.categoriaNombre}"></td>
+                <td>
+                    <span th:text="${@fmt.pesos(p.precioFinal)}"></span>
+                    <div class="small texto-suave" th:if="${p.descuentoPorcentaje > 0}"><s th:text="${@fmt.pesos(p.precio)}"></s> (<span th:text="${p.descuentoPorcentaje}"></span>% menos)</div>
+                </td>
+                <td th:text="${p.variantes}"></td>
+                <td><span th:replace="~{fragments/comunes :: estado(${p.activo} ? ${p.estado} : 'INACTIVO')}"></span></td>
+                <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/operario/productos/{id}(id=${p.id})}">Editar</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

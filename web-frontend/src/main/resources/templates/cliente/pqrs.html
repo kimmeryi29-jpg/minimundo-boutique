@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Mis PQRS', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h1 class="mb-0">Peticiones, quejas y reclamos</h1>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" th:href="@{/cuenta/solicitudes}">Cambios y devoluciones</a>
+            <a class="btn btn-primary" th:href="@{/cuenta/pqrs/nueva}">Radicar una PQRS</a>
+        </div>
+    </div>
+    <div class="hoja vacio" th:if="${pqrs.isEmpty()}"><i class="bi bi-chat-square-text"></i>No has radicado ninguna PQRS.</div>
+    <div class="hoja" th:unless="${pqrs.isEmpty()}">
+        <table class="table tabla">
+            <thead><tr><th>Radicado</th><th>Tipo</th><th>Fecha</th><th>Pedido</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="q : ${pqrs}">
+                <td class="fw-bold" th:text="${q.radicado}"></td>
+                <td th:text="${q.tipoTexto}"></td>
+                <td th:text="${@fmt.fecha(q.fechaRadicacion)}"></td>
+                <td th:text="${q.pedidoCodigo != null ? q.pedidoCodigo : '—'}"></td>
+                <td><span th:replace="~{fragments/comunes :: estado(${q.estado})}"></span></td>
+                <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/cuenta/pqrs/{id}(id=${q.id})}" th:text="${q.estado == 'CERRADA'} ? 'Ver respuesta' : 'Ver'">Ver</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

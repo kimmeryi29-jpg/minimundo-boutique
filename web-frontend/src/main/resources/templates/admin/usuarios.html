@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Usuarios y roles', ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="roles=${ {'CLIENTE','ASESOR','OPERARIO','REPARTIDOR','ADMIN'} }">
+    <div class="panel-cabecera">
+        <div><h1>Usuarios y roles</h1><p class="texto-suave mb-0">Crea cuentas internas, cambia roles y desactiva accesos sin borrar historial.</p></div>
+        <a class="btn btn-primary" th:href="@{/admin/usuarios/nuevo}"><i class="bi bi-person-plus"></i> Nuevo usuario</a>
+    </div>
+    <form class="hoja row g-2 align-items-end" method="get" th:action="@{/admin/usuarios}">
+        <div class="col-md-4"><label class="form-label" for="q">Buscar</label><input class="form-control" id="q" name="q" th:value="${q}" placeholder="Nombre o correo"></div>
+        <div class="col-md-3">
+            <label class="form-label" for="rol">Rol</label>
+            <select class="form-select" id="rol" name="rol">
+                <option value="">Todos</option>
+                <option th:each="r : ${roles}" th:value="${r}" th:text="${@fmt.estado(r)}" th:selected="${r == rol}"></option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="activo">Estado</label>
+            <select class="form-select" id="activo" name="activo">
+                <option value="">Todos</option>
+                <option value="true" th:selected="${activo == 'true'}">Activos</option>
+                <option value="false" th:selected="${activo == 'false'}">Desactivados</option>
+            </select>
+        </div>
+        <div class="col-md-2"><button class="btn btn-outline-primary w-100" type="submit">Filtrar</button></div>
+    </form>
+    <section class="hoja">
+        <div class="vacio" th:if="${usuarios.isEmpty()}">No hay usuarios con esos filtros.</div>
+        <table class="table tabla align-middle" th:unless="${usuarios.isEmpty()}">
+            <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Último acceso</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="u : ${usuarios}">
+                <td class="fw-bold" th:text="${u.nombre}"></td>
+                <td th:text="${u.email}"></td>
+                <td th:text="${@fmt.estado(u.rol)}"></td>
+                <td th:text="${u.ultimoAcceso != null} ? ${@fmt.fechaHora(u.ultimoAcceso)} : 'Nunca'"></td>
+                <td><span th:replace="~{fragments/comunes :: estado(${u.activo} ? 'ACTIVO' : 'INACTIVO')}"></span></td>
+                <td class="text-end text-nowrap">
+                    <a class="btn btn-sm btn-outline-primary" th:href="@{/admin/usuarios/{id}(id=${u.id})}">Editar</a>
+                    <th:block th:if="${u.id != yo.id}">
+                        <form class="d-inline" th:if="${u.activo}" th:action="@{/admin/usuarios/{id}/desactivar(id=${u.id})}" method="post" th:attr="data-confirmar='¿Desactivar a ' + ${u.nombre} + '? No podrá iniciar sesión.'">
+                            <button class="btn btn-sm btn-link text-danger" type="submit">Desactivar</button>
+                        </form>
+                        <form class="d-inline" th:unless="${u.activo}" th:action="@{/admin/usuarios/{id}/activar(id=${u.id})}" method="post">
+                            <button class="btn btn-sm btn-link" type="submit">Activar</button>
+                        </form>
+                    </th:block>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

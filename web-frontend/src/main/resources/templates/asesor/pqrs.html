@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Bandeja de PQRS', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera">
+        <div>
+            <h1>Bandeja de PQRS</h1>
+            <p class="texto-suave mb-0">Se marcan como vencidas las que llevan más de <strong th:text="${parametros.diasVencimientoPqrs}"></strong> días hábiles sin respuesta.</p>
+        </div>
+    </div>
+    <form class="hoja d-flex flex-wrap gap-3 align-items-end" th:action="@{/asesor/pqrs}" method="get">
+        <div>
+            <label class="form-label" for="estado">Estado</label>
+            <select class="form-select" id="estado" name="estado">
+                <option value="">Todos</option>
+                <option th:each="e : ${ {'RADICADA','EN_GESTION','CERRADA'} }" th:value="${e}" th:text="${@fmt.estado(e)}" th:selected="${estado == e}"></option>
+            </select>
+        </div>
+        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="vencidas" name="vencidas" value="si" th:checked="${vencidas == 'si'}"><label class="form-check-label" for="vencidas">Solo vencidas</label></div>
+        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="mias" name="mias" value="si" th:checked="${mias == 'si'}"><label class="form-check-label" for="mias">Asignadas a mí</label></div>
+        <button class="btn btn-primary" type="submit">Filtrar</button>
+        <a class="btn btn-link" th:href="@{/asesor/pqrs}">Limpiar</a>
+    </form>
+    <div class="hoja">
+        <div class="vacio" th:if="${pqrs.isEmpty()}"><i class="bi bi-inbox"></i>No hay PQRS con esos filtros.</div>
+        <div class="table-responsive" th:unless="${pqrs.isEmpty()}">
+            <table class="table tabla">
+                <thead><tr><th>Radicado</th><th>Tipo</th><th>Cliente</th><th>Radicada</th><th>Días hábiles</th><th>Estado</th><th>Asesor</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="q : ${pqrs}" th:classappend="${q.vencida} ? 'resaltada'">
+                    <td class="fw-bold" th:text="${q.radicado}"></td>
+                    <td th:text="${q.tipoTexto}"></td>
+                    <td th:text="${q.clienteNombre}"></td>
+                    <td th:text="${@fmt.fecha(q.fechaRadicacion)}"></td>
+                    <td><span th:text="${q.diasHabiles}"></span> <span class="estado estado-rojo ms-1" th:if="${q.vencida}">Vencida</span></td>
+                    <td><span th:replace="~{fragments/comunes :: estado(${q.estado})}"></span></td>
+                    <td th:text="${q.asesorNombre != null ? q.asesorNombre : 'Sin asignar'}"></td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/asesor/pqrs/{id}(id=${q.id})}">Abrir</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

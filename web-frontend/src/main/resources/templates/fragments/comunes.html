@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="cabeza(titulo)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' | MiniMundo Boutique'">MiniMundo Boutique</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="icon" th:href="@{/img/favicon.svg}" type="image/svg+xml">
+</head>
+<body>
+<!-- ===================== Mensajes ===================== -->
+<div th:fragment="avisos">
+    <div th:if="${ok}" class="aviso aviso-ok mb-3" role="status" th:text="${ok}"></div>
+    <div th:if="${error}" class="aviso aviso-error mb-3" role="alert" th:text="${error}"></div>
+    <div th:if="${info}" class="aviso aviso-info mb-3" role="status" th:text="${info}"></div>
+</div>
+
+<!-- Estado con color -->
+<span th:fragment="estado(valor)" class="estado" th:classappend="${@fmt.clase(valor)}" th:text="${@fmt.estado(valor)}"></span>
+
+<!-- Foto de producto -->
+<th:block th:fragment="foto(id, alt, clase)">
+    <img th:if="${id}" th:src="@{/img/{i}(i=${id})}" th:alt="${alt}" th:class="${clase}" loading="lazy">
+    <span th:unless="${id}" th:class="${clase} + ' d-inline-flex align-items-center justify-content-center'"><i class="bi bi-image" aria-hidden="true"></i></span>
+</th:block>
+
+
+<!-- Tarjeta de producto con etiqueta colgante de precio -->
+<a th:fragment="prenda(p)" class="prenda" th:href="@{/producto/{id}(id=${p.id})}">
+    <div class="prenda-foto">
+        <img th:if="${p.imagen}" th:src="@{/img/{i}(i=${p.imagen})}" th:alt="${p.nombre}" loading="lazy">
+        <i th:unless="${p.imagen}" class="bi bi-image" aria-hidden="true"></i>
+    </div>
+    <span class="etiqueta-precio" th:classappend="${p.descuentoPorcentaje > 0} ? 'oferta'" th:text="${@fmt.pesos(p.precioFinal)}">$0</span>
+    <div class="prenda-cuerpo">
+        <div class="prenda-nombre" th:text="${p.nombre}">Producto</div>
+        <div class="prenda-meta">
+            <span th:text="${p.rangoEdadTexto}">Edad</span>
+            <th:block th:if="${p.descuentoPorcentaje > 0}">
+                <span class="ms-1 precio-tachado" th:text="${@fmt.pesos(p.precio)}"></span>
+                <span class="chip-oferta ms-1" th:text="'-' + ${p.descuentoPorcentaje} + '%'"></span>
+            </th:block>
+        </div>
+        <div class="prenda-meta mt-1">Tallas <span th:text="${#strings.listJoin(p.tallas, ', ')}"></span></div>
+    </div>
+</a>
+</body>
+</html>

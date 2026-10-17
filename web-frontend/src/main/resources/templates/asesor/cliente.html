@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel(${cliente.nombre}, ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <a th:href="@{/asesor/clientes}">Buscar clientes</a>
+    <div class="panel-cabecera mt-2"><h1 th:text="${cliente.nombre}"></h1></div>
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <section class="hoja">
+                <h2 class="h5">Datos</h2>
+                <p class="mb-1" th:text="${cliente.email}"></p>
+                <p class="mb-1" th:text="${cliente.telefono}"></p>
+                <p class="mb-1" th:if="${cliente.direccion}"><span th:text="${cliente.direccion.direccion}"></span>, <span th:text="${cliente.direccion.barrio}"></span> <span th:text="${cliente.direccion.ciudad}"></span></p>
+                <p class="mb-0 texto-suave">Cliente desde <span th:text="${@fmt.fecha(cliente.fechaCreacion)}"></span></p>
+            </section>
+        </div>
+        <div class="col-lg-8">
+            <section class="hoja">
+                <h2 class="h5">Pedidos</h2>
+                <div class="vacio" th:if="${pedidos.isEmpty()}">Este cliente no tiene pedidos.</div>
+                <table class="table tabla" th:unless="${pedidos.isEmpty()}">
+                    <thead><tr><th>Código</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Guía</th></tr></thead>
+                    <tbody>
+                    <tr th:each="p : ${pedidos}">
+                        <td class="fw-bold" th:text="${p.codigo}"></td>
+                        <td th:text="${@fmt.fecha(p.fechaCreacion)}"></td>
+                        <td th:text="${@fmt.pesos(p.total)}"></td>
+                        <td><span th:replace="~{fragments/comunes :: estado(${p.estado})}"></span></td>
+                        <td th:text="${p.guia != null ? p.guia : '—'}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+            <section class="hoja" th:if="${!solicitudes.isEmpty()}">
+                <h2 class="h5">Cambios y devoluciones</h2>
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex justify-content-between py-1" th:each="s : ${solicitudes}">
+                        <span><strong th:text="${s.numero}"></strong> <span th:text="${s.tipoTexto}"></span> de <span th:text="${s.nombreProducto}"></span></span>
+                        <span th:replace="~{fragments/comunes :: estado(${s.estado})}"></span>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </div>
+</div>
+</body>
+</html>

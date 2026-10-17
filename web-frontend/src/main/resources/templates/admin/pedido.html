@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Pedido ' + ${pedido.codigo}, ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <a th:href="@{/admin/pedidos}">Volver a pedidos</a>
+    <div class="panel-cabecera mt-2">
+        <div><h1>Pedido <span th:text="${pedido.codigo}"></span></h1><div class="texto-suave">Creado el <span th:text="${@fmt.fechaHora(pedido.fechaCreacion)}"></span></div></div>
+        <span th:replace="~{fragments/comunes :: estado(${pedido.estado})}"></span>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <section class="hoja">
+                <h2 class="h5">Productos</h2>
+                <table class="table tabla">
+                    <thead><tr><th>SKU</th><th>Producto</th><th class="text-end">Cantidad</th><th class="text-end">Precio</th><th class="text-end">Valor</th></tr></thead>
+                    <tbody>
+                    <tr th:each="i : ${pedido.items}">
+                        <td class="font-monospace small" th:text="${i.sku}"></td>
+                        <td><span th:text="${i.nombre}"></span><div class="small texto-suave">Talla <span th:text="${i.talla}"></span>, <span th:text="${i.color}"></span></div></td>
+                        <td class="text-end" th:text="${i.cantidad}"></td>
+                        <td class="text-end"><span th:text="${@fmt.pesos(i.precioUnitario)}"></span><div class="small texto-suave" th:if="${i.descuentoPorcentaje > 0}" th:text="${i.descuentoPorcentaje} + '% de descuento'"></div></td>
+                        <td class="text-end" th:text="${@fmt.pesos(i.precioUnitario * i.cantidad)}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <dl class="row mb-0 ms-auto" style="max-width: 320px">
+                    <dt class="col-7 fw-normal">Subtotal</dt><dd class="col-5 text-end" th:text="${@fmt.pesos(pedido.subtotal)}"></dd>
+                    <dt class="col-7 fw-normal">Descuentos</dt><dd class="col-5 text-end" th:text="'-' + ${@fmt.pesos(pedido.descuentos)}"></dd>
+                    <dt class="col-7 fw-normal">Envío</dt><dd class="col-5 text-end" th:text="${@fmt.pesos(pedido.envio)}"></dd>
+                    <dt class="col-7">Total</dt><dd class="col-5 text-end fw-bold" th:text="${@fmt.pesos(pedido.total)}"></dd>
+                </dl>
+            </section>
+            <section class="hoja">
+                <h2 class="h5">Historial</h2>
+                <ul class="historial">
+                    <li th:each="h : ${pedido.historialEstados}">
+                        <strong th:text="${@fmt.estado(h.estado)}"></strong><th:block th:if="${h.usuarioNombre}">, <span th:text="${h.usuarioNombre}"></span></th:block>
+                        <br><small th:text="${@fmt.fechaHora(h.fecha)}"></small>
+                        <div class="small" th:if="${h.detalle}" th:text="${h.detalle}"></div>
+                    </li>
+                </ul>
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="hoja">
+                <h2 class="h5">Cliente</h2>
+                <p class="mb-1 fw-bold" th:text="${pedido.clienteNombre}"></p>
+                <p class="mb-0" th:text="${pedido.clienteEmail}"></p>
+            </section>
+            <section class="hoja" th:if="${pedido.direccionEnvio != null}">
+                <h2 class="h5">Envío</h2>
+                <p class="mb-1" th:text="${pedido.direccionEnvio.nombreRecibe}"></p>
+                <p class="mb-1" th:text="${pedido.direccionEnvio.direccion}"></p>
+                <p class="mb-1" th:text="${pedido.direccionEnvio.ciudad}"></p>
+                <p class="mb-1" th:text="${pedido.direccionEnvio.telefono}"></p>
+                <p class="mb-1 mt-2" th:if="${pedido.guia}"><span th:text="${pedido.transportadora}"></span>, guía <strong th:text="${pedido.guia}"></strong></p>
+                <p class="mb-0" th:if="${pedido.repartidorNombre}">Repartidor: <span th:text="${pedido.repartidorNombre}"></span></p>
+            </section>
+            <section class="hoja" th:if="${pedido.referenciaPago}">
+                <h2 class="h5">Pago</h2>
+                <p class="mb-1">Tarjeta terminada en <span th:text="${pedido.tarjetaUltimos4}"></span></p>
+                <p class="mb-0 small texto-suave">Referencia <span class="font-monospace" th:text="${pedido.referenciaPago}"></span></p>
+            </section>
+        </div>
+    </div>
+</div>
+</body>
+</html>

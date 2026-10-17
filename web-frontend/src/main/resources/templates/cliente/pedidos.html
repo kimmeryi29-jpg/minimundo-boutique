@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Mis pedidos', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <h1 class="mb-3">Mis pedidos</h1>
+    <div class="hoja vacio" th:if="${pedidos.isEmpty()}">
+        <i class="bi bi-receipt"></i>
+        <p class="mb-2">Aún no tienes pedidos.</p>
+        <a class="btn btn-primary" th:href="@{/catalogo}">Ver el catálogo</a>
+    </div>
+    <div class="hoja" th:unless="${pedidos.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table tabla">
+                <thead><tr><th>Pedido</th><th>Fecha</th><th>Productos</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="p : ${pedidos}">
+                    <td class="fw-bold" th:text="${p.codigo}"></td>
+                    <td th:text="${@fmt.fecha(p.fechaCreacion)}"></td>
+                    <td th:text="${p.unidades} + (${p.unidades} == 1 ? ' prenda' : ' prendas')"></td>
+                    <td th:text="${@fmt.pesos(p.total)}"></td>
+                    <td><span th:replace="~{fragments/comunes :: estado(${p.estado})}"></span></td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/cuenta/pedidos/{id}(id=${p.id})}">Ver detalle</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

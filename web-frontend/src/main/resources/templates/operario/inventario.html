@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Inventario', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera">
+        <div><h1>Inventario</h1><p class="texto-suave mb-0">Existencias por SKU. Disponible es lo que queda para vender después de las reservas de pedidos en curso.</p></div>
+    </div>
+    <div class="aviso aviso-error" th:unless="${inv.catalogoDisponible}">El catálogo no responde en este momento: algunos nombres de producto pueden faltar.</div>
+
+    <div class="row g-3 mb-1">
+        <div class="col-md-6">
+            <form class="hoja h-100" method="post" th:action="@{/operario/inventario/entrada}">
+                <h2 class="h5">Registrar entrada</h2>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label" for="sku-e">SKU</label><input class="form-control font-monospace" id="sku-e" name="sku" required placeholder="BOD-001-6M-ROSA"></div>
+                    <div class="col-6"><label class="form-label" for="cant-e">Unidades que llegaron</label><input class="form-control" id="cant-e" name="cantidad" type="number" min="1" required></div>
+                    <div class="col-12"><label class="form-label" for="motivo-e">Nota</label><input class="form-control" id="motivo-e" name="motivo" placeholder="Proveedor, factura..."></div>
+                    <div class="col-12"><button class="btn btn-primary" type="submit">Registrar entrada</button></div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <form class="hoja h-100" method="post" th:action="@{/operario/inventario/ajuste}">
+                <h2 class="h5">Ajustar por conteo</h2>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label" for="sku-a">SKU</label><input class="form-control font-monospace" id="sku-a" name="sku" required></div>
+                    <div class="col-6"><label class="form-label" for="cant-a">Unidades a sumar o restar</label><input class="form-control" id="cant-a" name="cantidad" type="number" required placeholder="-2"></div>
+                    <div class="col-12"><label class="form-label" for="motivo-a">Motivo</label><input class="form-control" id="motivo-a" name="motivo" required placeholder="Conteo físico, prenda averiada..."></div>
+                    <div class="col-12"><button class="btn btn-outline-primary" type="submit">Registrar ajuste</button></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <form class="hoja row g-2 align-items-end" method="get" th:action="@{/operario/inventario}">
+        <div class="col-md-3"><label class="form-label" for="sku">SKU</label><input class="form-control" id="sku" name="sku" th:value="${sku}"></div>
+        <div class="col-md-2"><label class="form-label" for="talla">Talla</label><input class="form-control" id="talla" name="talla" th:value="${talla}"></div>
+        <div class="col-md-2"><label class="form-label" for="color">Color</label><input class="form-control" id="color" name="color" th:value="${color}"></div>
+        <div class="col-md-3">
+            <label class="form-label" for="filtro">Mostrar</label>
+            <select class="form-select" id="filtro" name="filtro">
+                <option value="">Todo</option>
+                <option value="bajo" th:selected="${filtro == 'bajo'}">Bajo el mínimo</option>
+                <option value="agotado" th:selected="${filtro == 'agotado'}">Agotados</option>
+            </select>
+        </div>
+        <div class="col-md-2"><button class="btn btn-outline-primary w-100" type="submit">Filtrar</button></div>
+    </form>
+
+    <section class="hoja">
+        <p class="aviso aviso-amarillo" th:if="${inv.alertas > 0}"><i class="bi bi-exclamation-triangle"></i> <span th:text="${inv.alertas}"></span> SKU están en o por debajo de su stock mínimo.</p>
+        <div class="vacio" th:if="${inv.items.isEmpty()}">No hay SKU con esos filtros.</div>
+        <table class="table tabla align-middle" th:unless="${inv.items.isEmpty()}">
+            <thead><tr><th>SKU</th><th>Producto</th><th>Talla</th><th>Color</th><th class="text-end">Stock</th><th class="text-end">Reservado</th><th class="text-end">Disponible</th><th class="text-end">Mínimo</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${inv.items}" th:classappend="${i.agotado} ? 'fila-agotada' : (${i.bajo} ? 'fila-baja')">
+                <td class="font-monospace"><a th:href="@{/operario/inventario/{s}(s=${i.sku})}" th:text="${i.sku}"></a></td>
+                <td th:text="${i.productoNombre}"></td>
+                <td th:text="${i.talla}"></td>
+                <td th:text="${i.color}"></td>
+                <td class="text-end" th:text="${i.stock}"></td>
+                <td class="text-end" th:text="${i.reservado}"></td>
+                <td class="text-end fw-bold" th:text="${i.disponible}"></td>
+                <td class="text-end" th:text="${i.stockMinimo}"></td>
+                <td>
+                    <span class="estado estado-rojo" th:if="${i.agotado}">Agotado</span>
+                    <span class="estado estado-amarillo" th:if="${i.bajo and !i.agotado}">Bajo</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

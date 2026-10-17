@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Clientes', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera"><h1>Buscar clientes</h1></div>
+    <form class="hoja d-flex gap-2" th:action="@{/asesor/clientes}" method="get" role="search">
+        <label class="visually-hidden" for="q">Nombre o correo</label>
+        <input class="form-control" id="q" name="q" th:value="${q}" placeholder="Nombre o correo del cliente" autofocus>
+        <button class="btn btn-primary" type="submit">Buscar</button>
+    </form>
+    <div class="hoja" th:if="${clientes != null}">
+        <div class="vacio" th:if="${clientes.isEmpty()}"><i class="bi bi-person-x"></i>No encontramos clientes con ese nombre o correo.</div>
+        <table class="table tabla" th:unless="${clientes.isEmpty()}">
+            <thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Ciudad</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${clientes}">
+                <td class="fw-bold" th:text="${c.nombre}"></td>
+                <td th:text="${c.email}"></td>
+                <td th:text="${c.telefono}"></td>
+                <td th:text="${c.direccion != null ? c.direccion.ciudad : '—'}"></td>
+                <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/asesor/clientes/{id}(id=${c.id})}">Ver pedidos</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

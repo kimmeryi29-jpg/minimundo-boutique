@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('Reportes', ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <div class="panel-cabecera">
+        <div><h1>Reportes</h1><p class="texto-suave mb-0">Del <span th:text="${@fmt.dia(ventas.desde)}"></span> al <span th:text="${@fmt.dia(ventas.hasta)}"></span>.</p></div>
+        <form class="d-flex flex-wrap gap-2 align-items-end" method="get" th:action="@{/admin/reportes}">
+            <div><label class="form-label small mb-0" for="desde">Desde</label><input class="form-control form-control-sm" type="date" id="desde" name="desde" th:value="${desde != null ? desde : ventas.desde}"></div>
+            <div><label class="form-label small mb-0" for="hasta">Hasta</label><input class="form-control form-control-sm" type="date" id="hasta" name="hasta" th:value="${hasta != null ? hasta : ventas.hasta}"></div>
+            <button class="btn btn-sm btn-outline-primary" type="submit">Ver periodo</button>
+        </form>
+    </div>
+    <p class="aviso aviso-error" th:if="${error}" th:text="${error} + ' Mostramos el mes en curso.'"></p>
+
+    <section class="hoja">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <h2 class="h5 mb-0">Ventas: <span th:text="${@fmt.pesos(ventas.total)}"></span> en <span th:text="${ventas.numeroPedidos}"></span> pedidos</h2>
+            <div class="d-flex gap-2">
+                <a class="btn btn-sm btn-primary" th:href="@{/admin/reportes/ventas.csv(desde=${ventas.desde},hasta=${ventas.hasta})}"><i class="bi bi-download"></i> Ventas en CSV</a>
+                <a class="btn btn-sm btn-outline-primary" th:href="@{/admin/reportes/inventario.csv}"><i class="bi bi-download"></i> Inventario en CSV</a>
+            </div>
+        </div>
+        <div class="vacio" th:if="${ventas.pedidos.isEmpty()}">No hay ventas en este periodo.</div>
+        <div class="table-responsive" th:unless="${ventas.pedidos.isEmpty()}">
+            <table class="table tabla">
+                <thead><tr><th>Pedido</th><th>Cliente</th><th>Pagado</th><th>Estado</th><th class="text-end">Prendas</th><th class="text-end">Subtotal</th><th class="text-end">Descuentos</th><th class="text-end">Envío</th><th class="text-end">Total</th></tr></thead>
+                <tbody>
+                <tr th:each="v : ${ventas.pedidos}">
+                    <td class="fw-bold" th:text="${v.codigo}"></td>
+                    <td th:text="${v.cliente}"></td>
+                    <td th:text="${@fmt.fechaHora(v.fechaPago)}"></td>
+                    <td><span th:replace="~{fragments/comunes :: estado(${v.estado})}"></span></td>
+                    <td class="text-end" th:text="${v.unidades}"></td>
+                    <td class="text-end" th:text="${@fmt.pesos(v.subtotal)}"></td>
+                    <td class="text-end" th:text="${@fmt.pesos(v.descuentos)}"></td>
+                    <td class="text-end" th:text="${@fmt.pesos(v.envio)}"></td>
+                    <td class="text-end fw-bold" th:text="${@fmt.pesos(v.total)}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="hoja">
+        <h2 class="h5">PQRS: <span th:text="${pqrs.total}"></span> radicadas</h2>
+        <div class="vacio" th:if="${pqrs.sinDatos}">No se radicaron PQRS en este periodo.</div>
+        <div class="row g-3" th:unless="${pqrs.sinDatos}">
+            <div class="col-md-5">
+                <h3 class="h6">Por tipo</h3>
+                <table class="table tabla"><tbody><tr th:each="t : ${pqrs.porTipo}"><td th:text="${t.key}"></td><td class="text-end" th:text="${t.value}"></td></tr></tbody></table>
+            </div>
+            <div class="col-md-5">
+                <h3 class="h6">Por estado</h3>
+                <table class="table tabla"><tbody><tr th:each="t : ${pqrs.porEstado}"><td th:text="${t.key}"></td><td class="text-end" th:text="${t.value}"></td></tr></tbody></table>
+            </div>
+            <div class="col-md-2"><div class="indicador"><div class="nombre">Vencidas</div><div class="valor" th:text="${pqrs.vencidas}"></div></div></div>
+        </div>
+    </section>
+</div>
+</body>
+</html>

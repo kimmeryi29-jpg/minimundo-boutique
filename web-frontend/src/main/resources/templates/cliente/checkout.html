@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/tienda :: tienda('Pago', ~{::#pagina})}">
+<body>
+<div id="pagina" th:with="f=${form != null ? form : {:}}">
+    <h1 class="mb-3">Envío y pago</h1>
+    <form th:action="@{/checkout}" method="post" class="row g-4" novalidate>
+        <div class="col-lg-7">
+            <section class="hoja">
+                <h2 class="h4">¿Dónde lo entregamos?</h2>
+                <div class="mb-3" th:if="${guardada != null}">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="usarGuardada" id="usar-guardada" value="si" checked>
+                        <label class="form-check-label" for="usar-guardada">
+                            Mi dirección guardada: <strong th:text="${guardada.direccion}"></strong>, <span th:text="${guardada.barrio}"></span> <span th:text="${guardada.ciudad}"></span>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="usarGuardada" id="usar-nueva" value="no">
+                        <label class="form-check-label" for="usar-nueva">Otra dirección</label>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="nombreRecibe">Quién recibe</label>
+                        <input class="form-control" id="nombreRecibe" name="nombreRecibe" th:value="${f['nombreRecibe'] != null ? f['nombreRecibe'] : perfil.nombre}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="telefono">Teléfono</label>
+                        <input class="form-control" id="telefono" name="telefono" th:value="${f['telefono'] != null ? f['telefono'] : (guardada != null ? guardada.telefono : perfil.telefono)}" th:classappend="${campos != null and campos['direccion.telefono'] != null} ? 'is-invalid'" required>
+                        <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['direccion.telefono']}"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="direccion">Dirección</label>
+                        <input class="form-control" id="direccion" name="direccion" th:value="${f['direccion'] != null ? f['direccion'] : (guardada != null ? guardada.direccion : '')}" th:classappend="${campos != null and campos['direccion.direccion'] != null} ? 'is-invalid'" placeholder="Calle 45 # 27-30 Apto 502" required>
+                        <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['direccion.direccion']}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="barrio">Barrio</label>
+                        <input class="form-control" id="barrio" name="barrio" th:value="${f['barrio'] != null ? f['barrio'] : (guardada != null ? guardada.barrio : '')}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="ciudad">Ciudad</label>
+                        <select class="form-select" id="ciudad" name="ciudad" data-recalcular-envio th:classappend="${campos != null and campos['direccion.ciudad'] != null} ? 'is-invalid'" required>
+                            <option value="">Elige la ciudad</option>
+                            <option th:each="t : ${tarifas}" th:value="${t.ciudad}" th:text="${t.ciudad} + ' (envío ' + ${@fmt.pesos(t.costo)} + ')'" th:selected="${ciudad != null and #strings.equalsIgnoreCase(ciudad, t.ciudad)}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['direccion.ciudad']}"></div>
+                        <div class="form-text">Cambiar la ciudad actualiza el costo de envío.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="indicaciones">Indicaciones para el repartidor (opcional)</label>
+                        <input class="form-control" id="indicaciones" name="indicaciones" th:value="${f['indicaciones'] != null ? f['indicaciones'] : (guardada != null ? guardada.indicaciones : '')}" placeholder="Portería, torre, punto de referencia">
+                    </div>
+                    <div class="col-12 form-check ms-1">
+                        <input class="form-check-input" type="checkbox" name="guardarDireccion" value="si" id="guardarDireccion" th:checked="${guardada == null}">
+                        <label class="form-check-label" for="guardarDireccion">Guardar esta dirección para próximas compras</label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="hoja">
+                <h2 class="h4">Pago con tarjeta</h2>
+                <p class="aviso aviso-info small">Pago simulado para el prototipo: no se cobra dinero. La tarjeta <strong>4242 4242 4242 4242</strong> se aprueba y la <strong>4000 0000 0000 0002</strong> se rechaza por fondos insuficientes.</p>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="titular">Nombre en la tarjeta</label>
+                        <input class="form-control" id="titular" name="titular" th:value="${f['titular']}" autocomplete="cc-name" th:classappend="${campos != null and campos['pago.titular'] != null} ? 'is-invalid'" required>
+                        <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['pago.titular']}"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="numeroTarjeta">Número de la tarjeta</label>
+                        <input class="form-control" id="numeroTarjeta" name="numeroTarjeta" inputmode="numeric" autocomplete="cc-number" placeholder="4242 4242 4242 4242" th:classappend="${campos != null and campos['pago.numeroTarjeta'] != null} ? 'is-invalid'" required>
+                        <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['pago.numeroTarjeta']}"></div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" for="vencimiento">Vence (MM/AA)</label>
+                        <input class="form-control" id="vencimiento" name="vencimiento" placeholder="12/29" autocomplete="cc-exp" th:classappend="${campos != null and campos['pago.vencimiento'] != null} ? 'is-invalid'" required>
+                        <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['pago.vencimiento']}"></div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" for="cvv">Código de seguridad</label>
+                        <input class="form-control" id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123" th:classappend="${campos != null and campos['pago.cvv'] != null} ? 'is-invalid'" required>
+                        <div class="invalid-feedback" th:if="${campos != null}" th:text="${campos['pago.cvv']}"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-5">
+            <aside class="hoja position-sticky" style="top: 1rem">
+                <h2 class="h4">Tu pedido</h2>
+                <ul class="list-unstyled">
+                    <li class="d-flex justify-content-between py-1" th:each="i : ${carrito.items}">
+                        <span><span th:text="${i.cantidad}"></span> × <span th:text="${i.nombre}"></span> <span class="texto-suave small" th:text="'(' + ${i.talla} + ', ' + ${i.color} + ')'"></span></span>
+                        <span th:text="${@fmt.pesos(i.subtotal)}"></span>
+                    </li>
+                </ul>
+                <hr>
+                <dl class="row mb-0">
+                    <dt class="col-7 fw-normal">Subtotal</dt><dd class="col-5 text-end" th:text="${@fmt.pesos(carrito.subtotal)}"></dd>
+                    <dt class="col-7 fw-normal">Descuentos</dt><dd class="col-5 text-end precio-oferta" th:text="'-' + ${@fmt.pesos(carrito.descuentos)}"></dd>
+                    <dt class="col-7 fw-normal">Envío</dt>
+                    <dd class="col-5 text-end" th:if="${carrito.envio != null}" th:text="${@fmt.pesos(carrito.envio)}"></dd>
+                    <dd class="col-5 text-end texto-suave" th:if="${carrito.envio == null and !carrito.sinCobertura}">Pendiente de calcular</dd>
+                    <dd class="col-5 text-end aviso-agotado" th:if="${carrito.sinCobertura}">Sin cobertura</dd>
+                    <dt class="col-7 fs-5">Total</dt><dd class="col-5 text-end fs-5 fw-bold" th:text="${@fmt.pesos(carrito.total)}"></dd>
+                </dl>
+                <p class="aviso aviso-error small mt-2" th:if="${carrito.sinCobertura}">No tenemos cobertura de envío en esa ciudad. Elige otra para continuar.</p>
+                <button class="btn btn-primary w-100 mt-3" type="submit" th:disabled="${carrito.envio == null}">Pagar <span th:text="${@fmt.pesos(carrito.total)}"></span></button>
+                <a class="btn btn-link w-100" th:href="@{/carrito}">Volver al carrito</a>
+            </aside>
+        </div>
+    </form>
+</div>
+</body>
+</html>

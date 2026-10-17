@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/panel :: panel('PQRS ' + ${q.radicado}, ~{::#pagina})}">
+<body>
+<div id="pagina">
+    <a th:href="@{/asesor/pqrs}">Bandeja de PQRS</a>
+    <div class="panel-cabecera mt-2">
+        <div>
+            <h1><span th:text="${q.tipoTexto}"></span> <span th:text="${q.radicado}"></span></h1>
+            <div class="texto-suave">De <strong th:text="${q.clienteNombre}"></strong> (<span th:text="${q.clienteEmail}"></span>), radicada el <span th:text="${@fmt.fechaHora(q.fechaRadicacion)}"></span></div>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="estado estado-rojo" th:if="${q.vencida}">Vencida</span>
+            <span th:replace="~{fragments/comunes :: estado(${q.estado})}"></span>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <section class="hoja">
+                <h2 class="h5">Mensaje del cliente</h2>
+                <p style="white-space: pre-line" th:text="${q.descripcion}"></p>
+            </section>
+            <section class="hoja" th:if="${q.estado == 'RADICADA'}">
+                <p>Nadie está gestionando este caso todavía.</p>
+                <form th:action="@{/asesor/pqrs/{id}/tomar(id=${q.id})}" method="post"><button class="btn btn-primary" type="submit">Tomar esta PQRS</button></form>
+            </section>
+            <section class="hoja" th:if="${q.estado == 'EN_GESTION'}">
+                <th:block th:if="${q.asesorId == yo.id}">
+                    <h2 class="h5">Responder y cerrar</h2>
+                    <form th:action="@{/asesor/pqrs/{id}/responder(id=${q.id})}" method="post">
+                        <label class="visually-hidden" for="respuesta">Respuesta</label>
+                        <textarea class="form-control mb-2" id="respuesta" name="respuesta" rows="5" maxlength="2000" required th:text="${respuesta}" placeholder="Escribe la respuesta que verá el cliente"></textarea>
+                        <button class="btn btn-primary" type="submit">Enviar respuesta y cerrar</button>
+                    </form>
+                </th:block>
+                <p class="mb-0" th:unless="${q.asesorId == yo.id}">La está gestionando <strong th:text="${q.asesorNombre}"></strong>.</p>
+            </section>
+            <section class="hoja" th:if="${q.estado == 'CERRADA'}">
+                <h2 class="h5">Respuesta enviada por <span th:text="${q.asesorNombre}"></span></h2>
+                <p class="mb-1" style="white-space: pre-line" th:text="${q.respuesta}"></p>
+                <small class="texto-suave" th:text="${@fmt.fechaHora(q.fechaCierre)}"></small>
+            </section>
+            <section class="hoja" th:if="${pedido != null}">
+                <h2 class="h5">Pedido asociado <span th:text="${pedido.codigo}"></span></h2>
+                <p class="mb-2"><span th:replace="~{fragments/comunes :: estado(${pedido.estado})}"></span> <span class="ms-2" th:text="${@fmt.pesos(pedido.total)}"></span>, pagado el <span th:text="${@fmt.fecha(pedido.fechaPago)}"></span></p>
+                <ul class="mb-0">
+                    <li th:each="i : ${pedido.items}"><span th:text="${i.cantidad}"></span> × <span th:text="${i.nombre}"></span> (talla <span th:text="${i.talla}"></span>, <span th:text="${i.color}"></span>)</li>
+                </ul>
+                <p class="mt-2 mb-0" th:if="${pedido.guia}">Guía <strong th:text="${pedido.guia}"></strong> con <span th:text="${pedido.transportadora}"></span>.</p>
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="hoja">
+                <h2 class="h5">Historial de estados</h2>
+                <ul class="historial">
+                    <li th:each="h : ${q.historial}">
+                        <strong th:text="${@fmt.estado(h.estado)}"></strong> por <span th:text="${h.usuarioNombre}"></span><br>
+                        <small th:text="${@fmt.fechaHora(h.fecha)}"></small>
+                    </li>
+                </ul>
+            </section>
+            <a class="btn btn-outline-primary w-100" th:href="@{/asesor/clientes/{id}(id=${q.clienteId})}">Ver datos y pedidos del cliente</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
