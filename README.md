@@ -78,21 +78,16 @@ GitHub Actions corre todo esto en cada cambio (pestaña **Actions**) y deja capt
 2. En **Database Access** crea un usuario con contraseña (rol *Read and write to any database*).
 3. En **Network Access** agrega `0.0.0.0/0` (Render no tiene IP fija en el plan gratuito).
 4. En **Connect > Drivers** copia la cadena `mongodb+srv://usuario:clave@cluster0.xxxxx.mongodb.net/`.
-5. Arma las 5 cadenas agregando el nombre de cada base antes del `?`:
-
-```
-mongodb+srv://usuario:clave@cluster0.xxxxx.mongodb.net/db_usuarios?retryWrites=true&w=majority
-mongodb+srv://usuario:clave@cluster0.xxxxx.mongodb.net/db_catalogo?retryWrites=true&w=majority
-mongodb+srv://usuario:clave@cluster0.xxxxx.mongodb.net/db_pedidos?retryWrites=true&w=majority
-mongodb+srv://usuario:clave@cluster0.xxxxx.mongodb.net/db_logistica?retryWrites=true&w=majority
-mongodb+srv://usuario:clave@cluster0.xxxxx.mongodb.net/db_atencion?retryWrites=true&w=majority
-```
+5. Las 5 cadenas de conexión ya están en `render.yaml` (una base por microservicio) con `<db_password>` en lugar
+   de la contraseña. Si usas otro clúster o usuario, cambia la parte `usuario@cluster` en ese archivo.
 
 ### 2. Render
 
 1. Crea una cuenta en https://render.com entrando con GitHub.
 2. **New > Blueprint**, elige este repositorio. Render lee `render.yaml` y propone 7 servicios gratuitos.
-3. Pega cada cadena de Atlas en el `MONGODB_URI` del servicio que corresponde y pulsa **Apply**.
+3. Pulsa **Deploy Blueprint**. Luego, en **Environment Groups > minimundo-comun**, agrega la variable
+   `MONGODB_PASSWORD` con la contraseña del usuario de Atlas y pulsa **Save, rebuild, and deploy**. Así la clave no
+   queda escrita en el repositorio.
 4. Espera a que los 7 servicios queden en verde (la primera compilación tarda de 10 a 15 minutos).
 5. Revisa las URL que Render asignó. Si alguna no es exactamente `https://minimundo-<servicio>.onrender.com`,
    corrígela en **Env Groups > minimundo-urls** y vuelve a desplegar.
