@@ -43,7 +43,7 @@ services:
     name: minimundo-usuarios
     runtime: docker
     plan: free
-    region: oregon
+    region: virginia
     branch: main
     rootDir: ms-usuarios
     dockerfilePath: ./Dockerfile
@@ -64,7 +64,7 @@ services:
     name: minimundo-catalogo
     runtime: docker
     plan: free
-    region: oregon
+    region: virginia
     branch: main
     rootDir: ms-catalogo
     dockerfilePath: ./Dockerfile
@@ -81,7 +81,7 @@ services:
     name: minimundo-pedidos
     runtime: docker
     plan: free
-    region: oregon
+    region: virginia
     branch: main
     rootDir: ms-pedidos
     dockerfilePath: ./Dockerfile
@@ -98,7 +98,7 @@ services:
     name: minimundo-logistica
     runtime: docker
     plan: free
-    region: oregon
+    region: virginia
     branch: main
     rootDir: ms-logistica
     dockerfilePath: ./Dockerfile
@@ -115,7 +115,7 @@ services:
     name: minimundo-atencion
     runtime: docker
     plan: free
-    region: oregon
+    region: virginia
     branch: main
     rootDir: ms-atencion
     dockerfilePath: ./Dockerfile
@@ -132,7 +132,7 @@ services:
     name: minimundo-gateway
     runtime: docker
     plan: free
-    region: oregon
+    region: virginia
     branch: main
     rootDir: api-gateway
     dockerfilePath: ./Dockerfile
@@ -147,7 +147,7 @@ services:
     name: minimundo-boutique
     runtime: docker
     plan: free
-    region: oregon
+    region: virginia
     branch: main
     rootDir: web-frontend
     dockerfilePath: ./Dockerfile
