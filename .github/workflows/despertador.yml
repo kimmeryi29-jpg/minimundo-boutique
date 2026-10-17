@@ -1,0 +1,53 @@
+name: Despertador de Render
+
+# Los servicios gratuitos de Render se duermen tras 15 minutos sin tráfico y tardan cerca de un minuto en despertar.
+# Este flujo los despierta y los mantiene despiertos mientras se usa la plataforma:
+#   - Botón manual: Actions > Despertador de Render > Run workflow (elige cuántas horas, máximo 6).
+#   - Automático los lunes: de 6:00 a.m. a 6:00 p.m. hora de Colombia (dos turnos de 6 horas).
+# Para apagar el horario automático crea la variable del repositorio DESPERTADOR_LUNES con el valor "no".
+# Si Render le dio otra URL a algún servicio, guarda la lista en la variable RENDER_URLS (separadas por espacios).
+
+on:
+  workflow_dispatch:
+    inputs:
+      horas:
+        description: "Horas que debe quedar despierta la plataforma (1 a 6)"
+        required: true
+        default: "5"
+  schedule:
+    - cron: "0 11 * * 1"   # lunes 6:00 a.m. en Bogotá (UTC-5)
+    - cron: "0 17 * * 1"   # lunes 12:00 m. en Bogotá
+
+concurrency:
+  group: despertador
+  cancel-in-progress: true
+
+jobs:
+  despertar:
+    if: github.event_name == 'workflow_dispatch' || vars.DESPERTADOR_LUNES != 'no'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Mantener despiertos los 7 servicios
+        env:
+          URLS: ${{ vars.RENDER_URLS }}
+          HORAS: ${{ github.event.inputs.horas || '6' }}
+        run: |
+          if [ -z "$URLS" ]; then
+            URLS="https://minimundo-usuarios.onrender.com https://minimundo-catalogo.onrender.com https://minimundo-pedidos.onrender.com https://minimundo-logistica.onrender.com https://minimundo-atencion.onrender.com https://minimundo-gateway.onrender.com https://minimundo-boutique.onrender.com"
+          fi
+          HORAS=$(( HORAS < 1 ? 1 : (HORAS > 6 ? 6 : HORAS) ))
+          FIN=$(( $(date +%s) + HORAS * 3600 - 300 ))
+          echo "Plataforma despierta por $HORAS horas"
+          primera=1
+          while [ "$(date +%s)" -lt "$FIN" ]; do
+            for u in $URLS; do
+              code=$(curl -s -o /dev/null -m 120 -w "%{http_code}" "$u/actuator/health" || echo 000)
+              echo "$(date -u +%H:%M) $u -> $code"
+              if [ "$primera" = 1 ]; then
+                [ "$code" = "200" ] && echo "::notice title=Despierto::$u" || echo "::warning title=Sin respuesta::$u respondió $code"
+              fi
+            done
+            primera=0
+            sleep 480
+          done

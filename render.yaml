@@ -1,0 +1,161 @@
+# Blueprint de Render para MiniMundo Boutique (HU-100).
+# Render > New > Blueprint > elige este repositorio. Crea los 7 servicios en el plan gratuito.
+# Antes de aplicar ten listas las 5 cadenas de conexión de MongoDB Atlas (una base por microservicio): Render las
+# pide al crear el Blueprint porque están marcadas con sync: false. Paso a paso en el README.
+#
+# Los servicios gratuitos de Render no reciben tráfico por la red privada, así que se comunican por sus URL públicas
+# https://<nombre>.onrender.com. Si Render le agrega un sufijo a algún nombre (porque ya existe), corrige la URL en el
+# grupo de variables minimundo-urls y vuelve a desplegar.
+
+envVarGroups:
+  - name: minimundo-comun
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DEMO_PASSWORD
+        value: Demo12345
+      - key: HTTP_READ_TIMEOUT
+        value: "60"
+  - name: minimundo-urls
+    envVars:
+      - key: USUARIOS_URL
+        value: https://minimundo-usuarios.onrender.com
+      - key: CATALOGO_URL
+        value: https://minimundo-catalogo.onrender.com
+      - key: PEDIDOS_URL
+        value: https://minimundo-pedidos.onrender.com
+      - key: LOGISTICA_URL
+        value: https://minimundo-logistica.onrender.com
+      - key: ATENCION_URL
+        value: https://minimundo-atencion.onrender.com
+      - key: GATEWAY_URL
+        value: https://minimundo-gateway.onrender.com
+      - key: FRONTEND_URL
+        value: https://minimundo-boutique.onrender.com
+      - key: CORS_ORIGINS
+        value: https://minimundo-boutique.onrender.com
+
+services:
+  # ms-usuarios -> base db_usuarios
+  - type: web
+    name: minimundo-usuarios
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: ms-usuarios
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: minimundo-comun
+      - fromGroup: minimundo-urls
+      - key: MONGODB_URI
+        sync: false
+      - key: ADMIN_EMAIL
+        value: admin@minimundo.co
+      - key: ADMIN_PASSWORD
+        value: Admin12345
+  # ms-catalogo -> base db_catalogo
+  - type: web
+    name: minimundo-catalogo
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: ms-catalogo
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: minimundo-comun
+      - fromGroup: minimundo-urls
+      - key: MONGODB_URI
+        sync: false
+  # ms-pedidos -> base db_pedidos
+  - type: web
+    name: minimundo-pedidos
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: ms-pedidos
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: minimundo-comun
+      - fromGroup: minimundo-urls
+      - key: MONGODB_URI
+        sync: false
+  # ms-logistica -> base db_logistica
+  - type: web
+    name: minimundo-logistica
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: ms-logistica
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: minimundo-comun
+      - fromGroup: minimundo-urls
+      - key: MONGODB_URI
+        sync: false
+  # ms-atencion -> base db_atencion
+  - type: web
+    name: minimundo-atencion
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: ms-atencion
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: minimundo-comun
+      - fromGroup: minimundo-urls
+      - key: MONGODB_URI
+        sync: false
+  # api-gateway: única entrada a la API
+  - type: web
+    name: minimundo-gateway
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: api-gateway
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: minimundo-comun
+      - fromGroup: minimundo-urls
+  # web-frontend: la tienda y los paneles de los 5 roles
+  - type: web
+    name: minimundo-boutique
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: web-frontend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: minimundo-comun
+      - fromGroup: minimundo-urls
+      - key: SHOW_DEMO_USERS
+        value: "true"
