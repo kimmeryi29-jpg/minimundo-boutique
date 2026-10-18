@@ -76,3 +76,43 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!window.confirm(f.dataset.confirmar)) e.preventDefault();
   }));
 });
+
+// Plan gratuito de Render: cada servicio se duerme tras 15 minutos sin uso y solo lo despierta tráfico de afuera de
+// Render. El navegador del visitante despierta los 7 servicios a la vez (como mucho una vez cada 5 minutos).
+(function () {
+  const meta = document.querySelector('meta[name=servicios]');
+  if (!meta || !meta.content) return;
+  let ultimo = 0;
+  try { ultimo = Number(sessionStorage.getItem('mm-despertar') || 0); } catch (e) { /* sin almacenamiento */ }
+  const reintento = document.querySelector('[data-reintentar]');
+  if (!reintento && Date.now() - ultimo < 5 * 60 * 1000) return;
+  try { sessionStorage.setItem('mm-despertar', String(Date.now())); } catch (e) { /* sin almacenamiento */ }
+  meta.content.split(' ').forEach(u => fetch(u, { mode: 'no-cors', cache: 'no-store' }).catch(() => {}));
+})();
+
+// Página de "un servicio no respondió": vuelve a intentar sola mientras la plataforma despierta (hasta 5 veces).
+(function () {
+  const caja = document.querySelector('[data-reintentar]');
+  if (!caja) return;
+  let intentos = 0;
+  try { intentos = Number(sessionStorage.getItem('mm-reintentos') || 0); } catch (e) { /* sin almacenamiento */ }
+  if (intentos >= 5) {
+    try { sessionStorage.removeItem('mm-reintentos'); } catch (e) { /* sin almacenamiento */ }
+    return;
+  }
+  let segundos = 30;
+  const texto = caja.querySelector('[data-cuenta]');
+  caja.hidden = false;
+  const reloj = setInterval(() => {
+    segundos -= 1;
+    if (texto) texto.textContent = segundos;
+    if (segundos <= 0) {
+      clearInterval(reloj);
+      try { sessionStorage.setItem('mm-reintentos', String(intentos + 1)); } catch (e) { /* sin almacenamiento */ }
+      location.reload();
+    }
+  }, 1000);
+})();
+if (!document.querySelector('[data-reintentar]')) {
+  try { sessionStorage.removeItem('mm-reintentos'); } catch (e) { /* sin almacenamiento */ }
+}

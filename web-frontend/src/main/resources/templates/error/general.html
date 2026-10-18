@@ -6,7 +6,8 @@
         <i class="bi" th:classappend="${codigo >= 500} ? 'bi-hourglass-split' : (${codigo == 404} ? 'bi-search' : 'bi-exclamation-circle')"></i>
         <h1 class="h3" th:text="${codigo >= 500} ? 'Un servicio no respondió' : (${codigo == 404} ? 'No encontramos esta página' : 'No se pudo completar la operación')">Aviso</h1>
         <p class="medida mx-auto" th:text="${mensaje}"></p>
-        <p class="texto-suave" th:if="${codigo >= 500}">Si la plataforma estaba en reposo, tarda cerca de un minuto en despertar. Vuelve a intentarlo.</p>
+        <p class="texto-suave" th:if="${codigo >= 500}">Si la plataforma estaba en reposo, tarda cerca de un minuto en despertar.</p>
+        <p class="aviso aviso-info d-inline-block" th:if="${codigo >= 500 and esGet == true}" data-reintentar hidden>Despertando la plataforma: lo intentamos de nuevo en <strong data-cuenta>30</strong> segundos.</p>
         <a class="btn btn-primary" href="javascript:location.reload()" th:if="${codigo >= 500}">Intentar de nuevo</a>
         <a class="btn btn-outline-primary" th:href="${yo != null} ? @{${yo.inicio()}} : @{/}">Ir al inicio</a>
     </div>

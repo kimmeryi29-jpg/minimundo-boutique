@@ -41,13 +41,15 @@ jobs:
           echo "Plataforma despierta por $HORAS horas"
           primera=1
           while [ "$(date +%s)" -lt "$FIN" ]; do
+            # Todos a la vez: así la plataforma completa queda lista en cerca de un minuto.
             for u in $URLS; do
-              code=$(curl -s -o /dev/null -m 120 -w "%{http_code}" "$u/actuator/health" || echo 000)
-              echo "$(date -u +%H:%M) $u -> $code"
-              if [ "$primera" = 1 ]; then
-                [ "$code" = "200" ] && echo "::notice title=Despierto::$u" || echo "::warning title=Sin respuesta::$u respondió $code"
-              fi
+              ( code=$(curl -s -o /dev/null -m 150 -w "%{http_code}" "$u/actuator/health" || echo 000)
+                echo "$(date -u +%H:%M) $u -> $code"
+                if [ "$primera" = 1 ]; then
+                  [ "$code" = "200" ] && echo "::notice title=Despierto::$u" || echo "::warning title=Sin respuesta::$u respondió $code"
+                fi ) &
             done
+            wait
             primera=0
             sleep 480
           done
